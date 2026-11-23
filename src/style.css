@@ -839,3 +839,6 @@ kbd {
 .template-step { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid #33463b; border-radius: 8px; background: #101a16; font-size: 12px; color: #b7c7bc; }
 .template-step strong { white-space: nowrap; color: #e2eee5; font-family: 'DM Mono'; font-size: 11px; }
 @media (max-width: 760px) { .template-grid, .template-steps { grid-template-columns: 1fr; } .template-step { flex-wrap: wrap; } }
+
+.long-ride-duration { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 360px; margin: 16px 0; color: #b7c7bc; font-size: 12px; }
+.long-ride-duration input { width: 100px; background: #101a16; color: #eef4ef; border: 1px solid #3b5044; border-radius: 7px; padding: 10px 12px; }
