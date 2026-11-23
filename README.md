@@ -17,6 +17,10 @@ npm install
 npm run dev
 ```
 
+### Development mocks
+
+To simulate the trainer and heart-rate monitor without Bluetooth devices, copy `.env.example` to `.env.local` and enable the relevant flags. The heart-rate mock generates a fluctuating BPM reading once per second and is only enabled in development.
+
 Open the localhost URL printed by Vite (normally http://localhost:5173). Click **Connect KICKR over Bluetooth** and select the trainer.
 
 Build a production bundle:
