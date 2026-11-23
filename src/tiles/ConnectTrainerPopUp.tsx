@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { HeartRateMonitor } from '../connections/heartrate';
-import { Trainer } from '../connections/ftms/shared';
+import { HeartRateMonitor, Trainer } from '../connections/ftms/shared';
 
 export interface ConnectTrainerPopUpData {
   trainer: Trainer;
@@ -67,17 +66,17 @@ export const ConnectTrainerPopUp = ({
         <div className="connection-section">
           <div className="eyebrow">OPTIONAL</div>
           <h2>Heart-rate monitor</h2>
-          <p>Start HeartCast on your iPhone and Apple Watch, then connect it here to display live BPM during your ride.</p>
+          <p>{heartRateMonitor.isMock ? 'Simulated heart-rate readings are enabled for development.' : 'Start HeartCast on your iPhone and Apple Watch, then connect it here to display live BPM during your ride.'}</p>
           <div className="connection-row">
             <span className={`connection-status ${heartRate !== null ? 'is-connected' : ''}`}>
-              <i /> {heartRate !== null ? `HeartCast connected · ${heartRate} BPM` : 'No heart-rate monitor connected'}
+              <i /> {heartRate !== null ? `${heartRateMonitor.isMock ? 'Mock HR monitor' : 'HeartCast'} · ${heartRate} BPM` : 'No heart-rate monitor connected'}
             </span>
             <div className="connection-buttons">
               {heartRate !== null ? (
                 <button className="secondary" onClick={() => heartRateMonitor.disconnect()}>Disconnect</button>
               ) : (
                 <button className="secondary" onClick={() => void connectHeartRate()} disabled={heartRateConnecting}>
-                  {heartRateConnecting ? 'Connecting...' : 'Connect HeartCast'}
+                  {heartRateConnecting ? 'Connecting...' : heartRateMonitor.isMock ? 'Connect mock HR' : 'Connect HeartCast'}
                 </button>
               )}
             </div>
