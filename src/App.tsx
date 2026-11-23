@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IntervalWorkoutTile } from './tiles/IntervalWorkoutTile';
+import { WorkoutTemplatesTile } from './tiles/WorkoutTemplatesTile';
+import { getWorkoutTemplates, WorkoutTemplateId } from './utils/workoutTemplates';
 import { Workout, Mode, WorkoutType, TestType } from './utils/types';
 import { buildSteps, getTestSteps } from './utils/utils';
 import { FtpTestTile } from './tiles/FtpTestTile';
@@ -40,8 +42,16 @@ export default function App() {
   const [testKind, setTestKind] = useState<TestType>(TestType.MIN_20);
   const [mode, setMode] = useState<Mode>("idle");
 
-  const trainingSteps = useMemo(() => selectedWorkout === WorkoutType.INTERVAL ? buildSteps(workout) : getTestSteps(testKind, ftp),
-    [ftp, selectedWorkout, testKind, workout]);
+  const [longRideHours, setLongRideHours] = useState(() => Number(localStorage.getItem('z2LongRideHours') || 3));
+  const templates = useMemo(() => getWorkoutTemplates(ftp, longRideHours * 60), [ftp, longRideHours]);
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplateId>('over-under');
+  const templateSteps = templates.find(template => template.id === selectedTemplate)?.steps;
+
+  const trainingSteps = useMemo(() => {
+    if (selectedWorkout === WorkoutType.INTERVAL) return buildSteps(workout);
+    if (selectedWorkout === WorkoutType.TEMPLATE) return templateSteps;
+    return getTestSteps(testKind, ftp);
+  }, [ftp, selectedWorkout, testKind, templateSteps, workout]);
 
   useEffect(() => {
     if (!trainer.connected) {
@@ -72,6 +82,7 @@ export default function App() {
   }, [workout]);
 
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
+  useEffect(() => { localStorage.setItem('z2LongRideHours', String(longRideHours)); }, [longRideHours]);
   useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(history)); }, [history]);
 
   const startWorkout = useCallback((workout: WorkoutType) => {
@@ -96,6 +107,7 @@ export default function App() {
 
       {mode === "idle" ? (
         <>
+          <WorkoutTemplatesTile templates={templates} selected={selectedTemplate} onSelect={setSelectedTemplate} connected={trainer.connected} onStart={() => startWorkout(WorkoutType.TEMPLATE)} longRideHours={longRideHours} onLongRideHoursChange={setLongRideHours} />
           <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={trainer.connected} mode={mode} runWorkout={() => startWorkout(WorkoutType.INTERVAL)} />
           <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} />
         </>
