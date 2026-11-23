@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HeartRateMonitor } from '../connections/heartrate';
+import { HeartRateMonitor } from '../connections/ftms/shared';
 import { Trainer } from '../connections/ftms/shared';
 
 export interface ConnectTrainerPopUpData {
@@ -70,7 +70,7 @@ export const ConnectTrainerPopUp = ({
           <p>{heartRateMonitor.isMock ? 'Simulated heart-rate readings are enabled for development.' : 'Start HeartCast on your iPhone and Apple Watch, then connect it here to display live BPM during your ride.'}</p>
           <div className="connection-row">
             <span className={`connection-status ${heartRate !== null ? 'is-connected' : ''}`}>
-              <i /> {heartRate !== null ? `${heartRateMonitor.name} · ${heartRate} BPM` : 'No heart-rate monitor connected'}
+              <i /> {heartRate !== null ? `${heartRateMonitor.isMock ? 'Mock HR monitor' : 'HeartCast'} · ${heartRate} BPM` : 'No heart-rate monitor connected'}
             </span>
             <div className="connection-buttons">
               {heartRate !== null ? (
