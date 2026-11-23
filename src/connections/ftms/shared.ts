@@ -18,3 +18,22 @@ export interface Trainer {
 
   disconnect(): void;
 }
+
+export interface HeartRateData {
+  heartRate?: number;
+}
+
+export type HeartRateListener = (data: HeartRateData) => void;
+
+export interface HeartRateMonitor {
+  readonly connected: boolean;
+  readonly isMock: boolean;
+
+  connect(): Promise<void>;
+
+  onData(listener: HeartRateListener): () => void;
+
+  disconnect(): void;
+
+  dispose(): void;
+}
