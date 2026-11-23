@@ -11,6 +11,10 @@ export class HeartRateMonitor {
     this.onHeartRate = onHeartRate;
   }
 
+  get isMock() {
+    return false;
+  }
+
   get connected() {
     return !!this.device?.gatt?.connected;
   }
