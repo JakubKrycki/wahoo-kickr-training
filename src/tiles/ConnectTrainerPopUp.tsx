@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { HeartRateMonitor } from '../connections/ftms/shared';
-import { Trainer } from '../connections/ftms/shared';
+import { HeartRateMonitor, Trainer } from '../connections/ftms/shared';
 
 export interface ConnectTrainerPopUpData {
   trainer: Trainer;
