@@ -14,7 +14,7 @@ const step = (label: string, minutes: number, watts: number, id: string): Omit<S
   id, label, minutes, watts
 });
 
-export function getWorkoutTemplates(ftp: number): WorkoutTemplate[] {
+export function getWorkoutTemplates(ftp: number, longRideMinutes = 180): WorkoutTemplate[] {
   const watts = (percent: number) => Math.round(ftp * percent / 100);
   const overUnder: Omit<Step, 'index' | 'total'>[] = [
     step('Warm-up · build', 10, watts(60), 'ou-warm'),
@@ -37,7 +37,7 @@ export function getWorkoutTemplates(ftp: number): WorkoutTemplate[] {
   ];
   const z2: Omit<Step, 'index' | 'total'>[] = [
     step('Warm-up · easy build', 10, watts(55), 'z2-warm'),
-    step('Endurance · Zone 2', 70, watts(65), 'z2-main'),
+    step('Endurance · Zone 2', Math.max(1, longRideMinutes - 20), watts(65), 'z2-main'),
     step('Cool-down', 10, watts(50), 'z2-cool')
   ];
 
@@ -47,6 +47,6 @@ export function getWorkoutTemplates(ftp: number): WorkoutTemplate[] {
   return [
     { id: 'over-under', name: 'Over/Under', description: '3 × 12 min alternating 2 min under / 1 min over threshold.', steps: finish(overUnder), durationMinutes: duration(finish(overUnder)) },
     { id: 'sweet-spot', name: 'Sweet Spot', description: '3 × 10 min at 90% FTP with easy recoveries.', steps: finish(sweetSpot), durationMinutes: duration(finish(sweetSpot)) },
-    { id: 'z2-long', name: 'Z2 Long Ride', description: 'Steady aerobic endurance with a gentle warm-up and cool-down.', steps: finish(z2), durationMinutes: duration(finish(z2)) }
+    { id: 'z2-long', name: 'Z2 Long Ride', description: 'Steady aerobic endurance. Set total ride duration; warm-up and cool-down are included.', steps: finish(z2), durationMinutes: duration(finish(z2)) }
   ];
 }
