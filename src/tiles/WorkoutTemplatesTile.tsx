@@ -7,9 +7,11 @@ interface WorkoutTemplatesTileProps {
   onSelect: (id: WorkoutTemplateId) => void;
   connected: boolean;
   onStart: () => void;
+  longRideHours: number;
+  onLongRideHoursChange: (hours: number) => void;
 }
 
-export function WorkoutTemplatesTile({ templates, selected, onSelect, connected, onStart }: WorkoutTemplatesTileProps) {
+export function WorkoutTemplatesTile({ templates, selected, onSelect, connected, onStart, longRideHours, onLongRideHoursChange }: WorkoutTemplatesTileProps) {
   const active = templates.find(template => template.id === selected) ?? templates[0];
   return (
     <section className="section">
@@ -28,6 +30,7 @@ export function WorkoutTemplatesTile({ templates, selected, onSelect, connected,
           ))}
         </div>
         <div className="template-preview">
+          {active.id === 'z2-long' ? <label className="long-ride-duration">Total ride duration (hours)<input type="number" min={1} max={8} step={0.5} value={longRideHours} onChange={event => onLongRideHoursChange(Math.max(1, Math.min(8, Number(event.target.value) || 1)))} /></label> : null}
           <div><small>SELECTED SESSION</small><h3>{active.name}</h3><p>{active.description}</p></div>
           <div className="template-steps">
             {active.steps.map((step, index) => <div key={step.id} className="template-step">
