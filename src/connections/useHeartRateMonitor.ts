@@ -1,32 +1,35 @@
-import { useEffect, useRef, useState } from 'react';
-import { HeartRateMonitor } from './heartrate';
+import { useEffect, useMemo, useState } from 'react';
+import { BluetoothHeartRateMonitor } from './heartrate';
 import { MockHeartRateMonitor } from './MockHeartRateMonitor';
+import { HeartRateMonitor } from './ftms/shared';
 
 export function useHeartRateMonitor() {
   const [heartRate, setHeartRate] = useState<number | null>(null);
 
-  const monitorRef = useRef<HeartRateMonitor | null>(null);
+  const useMockHeartRate =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_USE_MOCK_HEART_RATE === "true";
 
-  if (monitorRef.current === null) {
-    const useMockHeartRate =
-      import.meta.env.DEV &&
-      import.meta.env.VITE_USE_MOCK_HEART_RATE === "true";
-
-    monitorRef.current = useMockHeartRate
-      ? new MockHeartRateMonitor(setHeartRate)
-      : new HeartRateMonitor(setHeartRate);
-  }
+  const heartRateMonitor: HeartRateMonitor = useMemo(
+    () => useMockHeartRate
+      ? new MockHeartRateMonitor()
+      : new BluetoothHeartRateMonitor(),
+    []
+  );
 
   useEffect(() => {
-    const monitor = monitorRef.current!;
+    const unsubscribe = heartRateMonitor.onData(({ heartRate: bpm }) => {
+      setHeartRate(bpm ?? null);
+    });
 
     return () => {
-      void monitor.dispose();
+      unsubscribe();
+      heartRateMonitor.dispose();
     };
-  }, []);
+  }, [heartRateMonitor]);
 
   return {
     heartRate,
-    heartRateMonitor: monitorRef.current,
+    heartRateMonitor,
   };
 }
