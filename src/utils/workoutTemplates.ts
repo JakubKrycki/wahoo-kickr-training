@@ -25,7 +25,7 @@ export function getWorkoutTemplates(ftp: number): WorkoutTemplate[] {
       ]).flat(),
       ...(block < 2 ? [step('Recovery between blocks', 3, watts(55), `ou-recovery-${block}`)] : [])
     ]).flat(),
-    step('Cool-down', 6, watts(45), 'ou-cool')
+    step('Cool-down', 8, watts(45), 'ou-cool')
   ];
   const sweetSpot: Omit<Step, 'index' | 'total'>[] = [
     step('Warm-up', 15, watts(60), 'ss-warm'),
