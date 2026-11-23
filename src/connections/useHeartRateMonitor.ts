@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { HeartRateMonitor } from './heartrate';
+import { MockHeartRateMonitor } from './MockHeartRateMonitor';
 
 export function useHeartRateMonitor() {
   const [heartRate, setHeartRate] = useState<number | null>(null);
@@ -7,7 +8,13 @@ export function useHeartRateMonitor() {
   const monitorRef = useRef<HeartRateMonitor | null>(null);
 
   if (monitorRef.current === null) {
-    monitorRef.current = new HeartRateMonitor(setHeartRate);
+    const useMockHeartRate =
+      import.meta.env.DEV &&
+      import.meta.env.VITE_USE_MOCK_HEART_RATE === "true";
+
+    monitorRef.current = useMockHeartRate
+      ? new MockHeartRateMonitor(setHeartRate)
+      : new HeartRateMonitor(setHeartRate);
   }
 
   useEffect(() => {
