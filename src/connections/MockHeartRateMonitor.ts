@@ -1,46 +1,45 @@
-import { HeartRateMonitor } from './heartrate';
+import { HeartRateData, HeartRateListener, HeartRateMonitor } from './ftms/shared';
 
 /** Simulates a BLE heart-rate monitor for local development. */
-export class MockHeartRateMonitor extends HeartRateMonitor {
+export class MockHeartRateMonitor implements HeartRateMonitor {
+  private listeners = new Set<HeartRateListener>();
   private timer?: ReturnType<typeof setInterval>;
   private _connected = false;
   private bpm = 118;
-  private readonly callback: (bpm: number | null) => void;
-
-  constructor(onHeartRate: (bpm: number | null) => void) {
-    super(onHeartRate);
-    this.callback = onHeartRate;
-  }
 
   get connected() {
     return this._connected;
-  }
-
-  get name() {
-    return 'Mock heart-rate monitor';
   }
 
   get isMock() {
     return true;
   }
 
-  async connect(): Promise<string> {
-    if (this._connected) return this.name;
+  onData(listener: HeartRateListener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  async connect(): Promise<void> {
+    if (this._connected) return;
 
     this._connected = true;
     this.bpm = 118;
-    this.callback(this.bpm);
+    this.publish({ heartRate: this.bpm });
     this.timer = setInterval(() => this.generateReading(), 1000);
+  }
 
-    return this.name;
+  private publish(data: HeartRateData) {
+    this.listeners.forEach(listener => listener(data));
   }
 
   private generateReading() {
     if (!this._connected) return;
+
     // Random walk with a gentle pull toward a plausible steady-state value.
     this.bpm += (122 - this.bpm) * 0.08 + (Math.random() - 0.5) * 4;
     this.bpm = Math.max(85, Math.min(175, this.bpm));
-    this.callback(Math.round(this.bpm));
+    this.publish({ heartRate: Math.round(this.bpm) });
   }
 
   disconnect() {
@@ -48,11 +47,13 @@ export class MockHeartRateMonitor extends HeartRateMonitor {
       clearInterval(this.timer);
       this.timer = undefined;
     }
+
     this._connected = false;
-    this.callback(null);
+    this.publish({});
   }
 
   dispose() {
     this.disconnect();
+    this.listeners.clear();
   }
 }
