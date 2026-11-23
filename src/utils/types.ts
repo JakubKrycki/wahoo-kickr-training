@@ -6,6 +6,13 @@ export type Segment = {
   watts: number;
 };
 export type Workout = { name: string; warmup: Segment; work: Segment; recovery: Segment; reps: number; cooldown: Segment };
-export type WorkoutType = "interval" | "test";
+export enum WorkoutType {
+  INTERVAL = "interval",
+  TEST = "test"
+};
 export type Step = Segment & { index: number; total: number };
 export type Mode = "idle" | "running" | "paused" | "finished";
+export enum TestType {
+  MIN_20 = "20min",
+  RAMP = "ramp"
+};

@@ -1,13 +1,14 @@
-import { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FtmsTrainer } from "./connections/ftms";
-import { HeartRateMonitor } from "./connections/heartrate";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IntervalWorkoutTile } from './tiles/IntervalWorkoutTile';
-import { Workout, Step, Segment, Mode, WorkoutType } from './utils/types';
-import { buildSteps, fmt, setFtpTarget } from './utils/utils';
+import { Workout, Mode, WorkoutType, TestType } from './utils/types';
+import { buildSteps, getTestSteps } from './utils/utils';
 import { FtpTestTile } from './tiles/FtpTestTile';
 import { ConnectTrainerPopUp } from './tiles/ConnectTrainerPopUp';
 import { ShortcutsTile } from './tiles/ShortcutsTile';
 import { CurrentTrainingTile } from './tiles/CurrentTrainingTile';
+import { useHeartRateMonitor } from './connections/useHeartRateMonitor';
+import { useFtmsTrainer } from './connections/ftms/useFtmsTrainer';
+import type { Trainer } from './connections/ftms/shared';
 
 const initial: Workout = {
   name: "5 × 4 min intervals",
@@ -19,47 +20,36 @@ const initial: Workout = {
 };
 
 export default function App() {
-  const trainer = useMemo(() => new FtmsTrainer(), []);
-  const [connected, setConnected] = useState(false);
-  const [heartRate, setHeartRate] = useState<number | null>(null);
+  const { trainer } = useFtmsTrainer();
+  const { heartRate, heartRateMonitor } = useHeartRateMonitor();
   const [showConnectionDialog, setShowConnectionDialog] = useState(true);
-  const heartRateMonitor = useMemo(() => new HeartRateMonitor(setHeartRate), []);
-  const [status, setStatus] = useState("Connect your trainer to begin.");
+
+  const handleConnect = async () => {
+    await heartRateMonitor.connect();
+  };
+
+  const handleDisconnect = async () => {
+    await heartRateMonitor.disconnect();
+  };
+
   const [power, setPower] = useState<number | null>(null);
   const [cadence, setCadence] = useState<number | null>(null);
   const [ftp, setFtp] = useState(() => Number(localStorage.getItem("ftp") || 200));
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutType>();
-  const [workout, setWorkout] = useState<Workout>(() => {
-    try { return JSON.parse(localStorage.getItem("workout") || "null") || initial; } catch { return initial; }
-  });
+  const [workout, setWorkout] = useState<Workout>(() => JSON.parse(localStorage.getItem("workout") || "null") || initial);
+  const [testKind, setTestKind] = useState<TestType>(TestType.MIN_20);
   const [mode, setMode] = useState<Mode>("idle");
 
-  const [testKind, setTestKind] = useState<"20min" | "ramp">("20min");
+  const trainingSteps = useMemo(() => selectedWorkout === WorkoutType.INTERVAL ? buildSteps(workout) : getTestSteps(testKind, ftp),
+    [ftp, selectedWorkout, testKind, workout]);
 
-  const ftpTestSteps: Step[] = useMemo(() => {
-    const warm: Segment = { id: "testwarm", label: "Test warm-up", minutes: 10, watts: setFtpTarget(ftp, 55) };
-    const prep: Segment = { id: "prep", label: "Preparation", minutes: 5, watts: setFtpTarget(ftp, 75) };
-    const open: Segment = { id: "open", label: "Openers", minutes: 1, watts: setFtpTarget(ftp, 100) };
-    const easy: Segment = { id: "easy", label: "Easy spin", minutes: 5, watts: setFtpTarget(ftp, 50) };
-    const cooldown: Segment = { id: "cool", label: "Cool-down", minutes: 5, watts: setFtpTarget(ftp, 45) };
-    let protocol: Segment[];
-    if (testKind === "20min") {
-      protocol = [warm, prep, open, easy,
-        { id: "test20", label: "20-minute maximal effort", minutes: 20, watts: setFtpTarget(ftp, 100) }, cooldown];
-    } else {
-      const ramp: Segment[] = Array.from({ length: 15 }, (_, i) => ({
-        id: `ramp${i}`, label: `Ramp · ${i + 1} min`, minutes: 1,
-        watts: Math.round(setFtpTarget(ftp, 50) + (i + 1) * 15)
-      }));
-      protocol = [warm, ...ramp, cooldown];
+  useEffect(() => {
+    if (!trainer.connected) {
+      setShowConnectionDialog(true);
     }
-    return protocol.map((segment, index) => ({ ...segment, index: index + 1, total: protocol.length }));
-  }, [testKind, ftp]);
+  }, []);
 
-  const intervalSteps = useMemo(() => {
-    return buildSteps(workout);
-  }, [workout])
-
+  //this could be moved to currentTrainingTile
   useEffect(() => {
     const unsubscribe = trainer.onData((data) => {
       if (data.power !== undefined) {
@@ -76,9 +66,11 @@ export default function App() {
     };
   }, [trainer]);
 
+  //this could be moved to interval training maybe, but probably there should be separate component for FtpTestTile and IntervalWorkoutTile
   useEffect(() => {
     localStorage.setItem("workout", JSON.stringify(workout));
   }, [workout]);
+
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
   useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(history)); }, [history]);
 
@@ -89,11 +81,9 @@ export default function App() {
 
   return (
     <main className="shell">
-      {showConnectionDialog || !connected ? (
+      {showConnectionDialog ? (
         <ConnectTrainerPopUp
           trainer={trainer}
-          setConnected={setConnected}
-          trainerConnected={connected}
           heartRate={heartRate}
           heartRateMonitor={heartRateMonitor}
           onClose={() => setShowConnectionDialog(false)}
@@ -101,26 +91,20 @@ export default function App() {
       ) : null}
       <header className="topbar">
         <div><div className="eyebrow">INDOOR CYCLING · ERG CONTROL</div><h1>KICKR <span>INTERVAL COACH</span></h1></div>
-        {connected ? <button className="secondary" onClick={() => setShowConnectionDialog(true)}>Connections</button> : null}
+        {trainer.connected ? <button className="secondary" onClick={() => setShowConnectionDialog(true)}>Connections</button> : null}
       </header>
-      {/* <section className="hero panel">
-        <div className="hero-copy"><div className="eyebrow">YOUR TRAINING, YOUR RULES</div><h2>Ride the plan.<br /><em>Not the buttons.</em></h2><p>Build structured sessions, let ERG handle the resistance, and track your FTP over time.</p>
-          <small className="status">{status}</small>
-        </div>
-        <div className="live-card">
-          <div className="live-head"><span>LIVE TELEMETRY</span><span className={connected ? "dot live" : "dot"} /></div>
-          <div className="live-stats"><div><b>{cadence ?? "—"}</b><small>RPM</small></div><div><b>{target || "—"}</b><small>ERG TARGET</small></div><div><b>{ftp}</b><small>FTP W</small></div></div>
-        </div>
-      </section> */}
-
-      <ShortcutsTile />
 
       {mode === "idle" ? (
         <>
-          <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={connected} mode={mode} runWorkout={() => startWorkout("interval")} />
-          <FtpTestTile runFtpTest={() => startWorkout("test")} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} setStatus={setStatus} connected={connected} mode={mode} />
+          <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={trainer.connected} mode={mode} runWorkout={() => startWorkout(WorkoutType.INTERVAL)} />
+          <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} />
         </>
-      ) : <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} setMode={setMode} steps={selectedWorkout === "interval" ? intervalSteps : (selectedWorkout === "test" ? ftpTestSteps : undefined)} />
+      ) : (
+        <>
+          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} setMode={setMode} steps={trainingSteps} />
+          <ShortcutsTile />
+        </>
+      )
       }
       <footer><span>KICKR INTERVAL COACH · LOCAL-FIRST</span><span>Training data stays in this browser.</span></footer>
     </main >

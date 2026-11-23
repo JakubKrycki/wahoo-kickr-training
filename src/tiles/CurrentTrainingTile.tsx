@@ -1,10 +1,10 @@
 import { SetStateAction, useEffect, useRef, useState } from 'react';
-import { Mode, Segment, Step, Workout } from '../utils/types';
-import { FtmsTrainer } from '../connections/ftms';
-import { buildSteps, fmt, setFtpTarget, segmentDurationSeconds } from '../utils/utils';
+import { Mode, Step } from '../utils/types';
+import { fmt, segmentDurationSeconds } from '../utils/utils';
+import { Trainer } from '../connections/ftms/shared';
 
 export interface CurrentTrainingTileData {
-  trainer: FtmsTrainer;
+  trainer: Trainer;
   mode: Mode;
   power: number | null;
   cadence: number | null;

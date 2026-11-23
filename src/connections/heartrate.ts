@@ -66,4 +66,9 @@ export class HeartRateMonitor {
     if (this.device?.gatt?.connected) this.device.gatt.disconnect();
     else this.handleDisconnected();
   }
+
+  dispose() {
+    this.disconnect();
+    this.onHeartRate(null);
+  }
 }

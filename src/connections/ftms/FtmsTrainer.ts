@@ -1,13 +1,14 @@
 // Bluetooth Fitness Machine Service (FTMS) client.
+
+import { BikeData, Listener, Trainer } from './shared';
+
 // KICKR CORE 2 support must be verified on the actual unit/firmware.
 const FTMS_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA = 0x2ad2;
 const FITNESS_MACHINE_FEATURE = 0x2acc;
 const CONTROL_POINT = 0x2ad9;
 
-type Listener = (data: { power?: number; cadence?: number; speed?: number }) => void;
-
-export class FtmsTrainer {
+export class FtmsTrainer implements Trainer {
   private device?: BluetoothDevice;
   private server?: BluetoothRemoteGATTServer;
   private controlPoint?: BluetoothRemoteGATTCharacteristic;
@@ -16,18 +17,17 @@ export class FtmsTrainer {
   private pendingReject?: (error: Error) => void;
   private timeout?: number;
 
-  get name() { return this.device?.name ?? "Trainer"; }
   get connected() { return !!this.server?.connected; }
 
   onData(listener: Listener) {
-  this.listeners.add(listener);
+    this.listeners.add(listener);
 
-  return () => {
-    this.listeners.delete(listener);
-  };
-}
+    return () => {
+      this.listeners.delete(listener);
+    };  
+  }
 
-  async connect(): Promise<string> {
+  async connect() {
     if (!("bluetooth" in navigator)) {
       throw new Error("Web Bluetooth is unavailable. Use a recent Chrome or Edge browser.");
     }
@@ -55,7 +55,6 @@ export class FtmsTrainer {
     try { await service.getCharacteristic(FITNESS_MACHINE_FEATURE); } catch { /* optional */ }
 
     await this.command(new Uint8Array([0x00])); // Request Control
-    return this.name;
   }
 
   private handleBikeData = (event: Event) => {
@@ -63,7 +62,7 @@ export class FtmsTrainer {
     if (!value || value.byteLength < 4) return;
     const flags = value.getUint16(0, true);
     let offset = 2;
-    const data: { power?: number; cadence?: number; speed?: number } = {};
+    const data: BikeData = {};
 
     // FTMS Indoor Bike Data: speed is mandatory unless More Data flag is set.
     if ((flags & 0x0001) === 0) {
@@ -81,8 +80,15 @@ export class FtmsTrainer {
     }
     // Average cadence
     if (flags & 0x0008) offset += 2;
-    // Total distance
-    if (flags & 0x0010) offset += 3;
+    // Total distance (uint24, meters)
+    if (flags & 0x0010) {
+      if (value.byteLength >= offset + 3) {
+        data.distance = value.getUint8(offset)
+          | (value.getUint8(offset + 1) << 8)
+          | (value.getUint8(offset + 2) << 16);
+      }
+      offset += 3;
+    }
     // Resistance level
     if (flags & 0x0020) offset += 2;
     // Instantaneous power (sint16 watts)

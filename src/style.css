@@ -658,46 +658,13 @@ footer {
   }
 }
 
-
 .click-controls {
   margin-top: 16px;
-  padding: 18px 22px;
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 14px;
-  align-items: center;
-}
-
-.click-controls h3 {
-  font-size: 19px;
-  margin: 5px 0;
-}
-
-.click-controls p {
-  font-size: 11px;
-  line-height: 1.6;
-  color: #a9b9ae;
-  margin: 6px 0;
-}
-
-.click-controls>small {
-  grid-column: 1 / -1;
-  color: #91a59a;
-  font-size: 10px;
-}
-
-.shortcut-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-}
-
-.shortcut-grid span {
+  padding: 10px 10px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  color: #c3d0c7;
-  font-size: 11px;
+  justify-content: space-evenly;
 }
 
 kbd {
@@ -713,16 +680,6 @@ kbd {
   background: #101a16;
   color: #e9f3eb;
   font: 11px 'DM Mono';
-}
-
-@media (max-width: 760px) {
-  .click-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .shortcut-grid {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 .session-cadence {

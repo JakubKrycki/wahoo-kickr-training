@@ -1,11 +1,9 @@
-import { SetStateAction, useState } from 'react';
-import { FtmsTrainer } from '../connections/ftms';
+import { useState } from 'react';
 import { HeartRateMonitor } from '../connections/heartrate';
+import { Trainer } from '../connections/ftms/shared';
 
 export interface ConnectTrainerPopUpData {
-  trainer: FtmsTrainer;
-  setConnected: React.Dispatch<SetStateAction<boolean>>;
-  trainerConnected: boolean;
+  trainer: Trainer;
   heartRate: number | null;
   heartRateMonitor: HeartRateMonitor;
   onClose: () => void;
@@ -13,8 +11,6 @@ export interface ConnectTrainerPopUpData {
 
 export const ConnectTrainerPopUp = ({
   trainer,
-  setConnected,
-  trainerConnected,
   heartRate,
   heartRateMonitor,
   onClose
@@ -28,7 +24,6 @@ export const ConnectTrainerPopUp = ({
     setError('');
     try {
       await trainer.connect();
-      setConnected(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect to the trainer.');
     } finally {
@@ -54,13 +49,13 @@ export const ConnectTrainerPopUp = ({
         <div className="connection-section">
           <div className="eyebrow">REQUIRED</div>
           <h1 style={{ paddingBottom: "6px" }}>Trainer connection</h1>
-          <span>{trainerConnected ? 'KICKR is connected and ready.' : "Connect your Wahoo KICKR CORE 2 to control resistance and receive cycling data."}</span>
+          <span>{trainer.connected ? 'KICKR is connected and ready.' : "Connect your Wahoo KICKR CORE 2 to control resistance and receive cycling data."}</span>
           <div className="connection-row">
-            <span className={`connection-status ${trainerConnected ? 'is-connected' : ''}`}>
-              <i /> {trainerConnected ? 'KICKR connected' : 'Trainer not connected'}
+            <span className={`connection-status ${trainer.connected ? 'is-connected' : ''}`}>
+              <i /> {trainer.connected ? 'KICKR connected' : 'Trainer not connected'}
             </span>
-            {!trainerConnected ? (
-              <button className="primary" onClick={() => void connectTrainer()} disabled={trainerConnecting}>
+            {!trainer.connected ? (
+              <button className="primary" onClick={() => connectTrainer()} disabled={trainerConnecting}>
                 {trainerConnecting ? 'Connecting...' : 'Connect KICKR'}
               </button>
             ) : null}
@@ -93,7 +88,7 @@ export const ConnectTrainerPopUp = ({
         {error ? <p className="connection-error" role="alert">{error}</p> : null}
 
         <div className="connection-footer">
-          <button className="primary" onClick={onClose} disabled={!trainerConnected}>Continue</button>
+          <button className="primary" onClick={onClose} disabled={!trainer.connected}>Continue</button>
         </div>
       </div>
     </div>
