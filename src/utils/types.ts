@@ -8,7 +8,8 @@ export type Segment = {
 export type Workout = { name: string; warmup: Segment; work: Segment; recovery: Segment; reps: number; cooldown: Segment };
 export enum WorkoutType {
   INTERVAL = "interval",
-  TEST = "test"
+  TEST = "test",
+  TEMPLATE = "template"
 };
 export type Step = Segment & { index: number; total: number };
 export type Mode = "idle" | "running" | "paused" | "finished";
