@@ -18,6 +18,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const [remaining, setRemaining] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [target, setTarget] = useState(0);
+  const [controlError, setControlError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const timerRef = useRef<number | undefined>(undefined);
   const stepsRef = useRef<Step[]>([]);
@@ -63,11 +64,13 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setElapsed(0);
     setRemaining(remainingRef.current);
     try {
+      setControlError(null);
       await trainer.startOrResume();
       await applyStep(nextSteps[0]);
       setMode("running");
       startWorkoutTimer();
     } catch (e) {
+      setControlError(e instanceof Error ? e.message : "Could not start trainer control.");
       setMode("idle");
     }
   }
@@ -147,11 +150,12 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
         timerRef.current = undefined;
         remainingRef.current = 0;
         setRemaining(0);
-        if (activeStep?.id === "test20" && testPowerCountRef.current > 0) {
-          onTestComplete?.(Math.round(testPowerTotalRef.current / testPowerCountRef.current));
-        }
         setMode("finished");
         return;
+      }
+
+      if (activeStep?.id === "test20" && testPowerCountRef.current > 0) {
+        onTestComplete?.(Math.round(testPowerTotalRef.current / testPowerCountRef.current));
       }
 
       // Advance exactly once per timer tick. Do not put side effects inside
@@ -165,6 +169,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       void applyStep(next).catch(err => {
         if (timerRef.current) window.clearInterval(timerRef.current);
         timerRef.current = undefined;
+        setControlError(err instanceof Error ? err.message : "Trainer control failed.");
         setMode("paused");
       });
     }, 1000);
@@ -181,11 +186,12 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   async function resume() {
     if (!steps?.length || mode !== "paused") return;
     try {
+      setControlError(null);
       await trainer.startOrResume();
       await applyStep(stepsRef.current[stepIndexRef.current]);
       setMode("running");
       startWorkoutTimer();
-    } catch (e) { }
+    } catch (e) { setControlError(e instanceof Error ? e.message : "Could not resume trainer."); }
   }
   async function stop() {
     if (timerRef.current) window.clearInterval(timerRef.current);
@@ -201,6 +207,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setStepIndex(0);
     setElapsed(0);
     setRemaining(0);
+    setControlError(null);
     setMode("idle");
   }
 
@@ -287,6 +294,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
           </div>
         </div>
 
+{controlError ? <p role="alert" className="error-message">{controlError}</p> : null}
         <div className="progress-track"><div style={{ width: `${totalSeconds ? Math.min(100, elapsed / totalSeconds * 100) : 0}%` }} /></div>
         <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : <button className="primary" onClick={() => void resume()}>Resume</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
       </div>
