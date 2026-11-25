@@ -11,9 +11,10 @@ export interface CurrentTrainingTileData {
   heartRate: number | null;
   setMode: React.Dispatch<SetStateAction<Mode>>;
   steps: Step[] | undefined;
+  onTestComplete?: (averagePower: number) => void;
 }
 
-export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, heartRate, steps }: CurrentTrainingTileData) => {
+export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, heartRate, steps, onTestComplete }: CurrentTrainingTileData) => {
   const [remaining, setRemaining] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [target, setTarget] = useState(0);
@@ -23,6 +24,10 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const stepIndexRef = useRef(0);
   const remainingRef = useRef(0);
   const startedRef = useRef(false);
+  const powerRef = useRef<number | null>(power);
+  const testPowerTotalRef = useRef(0);
+  const testPowerCountRef = useRef(0);
+  powerRef.current = power;
 
   const current = steps !== undefined ? steps[stepIndex] : undefined;
   const totalSeconds = steps?.reduce((sum, s) => sum + s.minutes * 60, 0) ?? 0;
@@ -33,6 +38,15 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       window.clearInterval(timerRef.current);
     }
   }, []);
+
+  async function applyStep(step: Step) {
+    if (step.control === "free") {
+      await trainer.setTargetResistance(0);
+      setTarget(0);
+    } else {
+      await sendTarget(step.watts);
+    }
+  }
 
   async function sendTarget(watts: number) {
     setTarget(watts);
@@ -50,7 +64,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setRemaining(remainingRef.current);
     try {
       await trainer.startOrResume();
-      await sendTarget(nextSteps[0].watts);
+      await applyStep(nextSteps[0]);
       setMode("running");
       startWorkoutTimer();
     } catch (e) {
@@ -71,7 +85,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
   // Zwift Click V2 keyboard controls
   function adjustCurrentTarget(delta: number) {
-    if (!current || (mode !== "running" && mode !== "paused")) return;
+    if (!current || current.control === "free" || (mode !== "running" && mode !== "paused")) return;
 
     const nextWatts = Math.max(
       0,
@@ -107,7 +121,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setStepIndex(nextIndex);
     setRemaining(segmentDurationSeconds(next));
 
-    void sendTarget(next.watts);
+    void applyStep(next).catch(() => setMode("paused"));
   }
 
   function startWorkoutTimer() {
@@ -115,6 +129,11 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
     timerRef.current = window.setInterval(() => {
       setElapsed(value => value + 1);
+      const activeStep = stepsRef.current[stepIndexRef.current];
+      if (activeStep?.id === "test20" && powerRef.current !== null) {
+        testPowerTotalRef.current += powerRef.current;
+        testPowerCountRef.current += 1;
+      }
 
       if (remainingRef.current > 1) {
         remainingRef.current -= 1;
@@ -128,6 +147,9 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
         timerRef.current = undefined;
         remainingRef.current = 0;
         setRemaining(0);
+        if (activeStep?.id === "test20" && testPowerCountRef.current > 0) {
+          onTestComplete?.(Math.round(testPowerTotalRef.current / testPowerCountRef.current));
+        }
         setMode("finished");
         return;
       }
@@ -140,7 +162,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       setStepIndex(nextIndex);
       setRemaining(remainingRef.current);
 
-      void sendTarget(next.watts).catch(err => {
+      void applyStep(next).catch(err => {
         if (timerRef.current) window.clearInterval(timerRef.current);
         timerRef.current = undefined;
         setMode("paused");
@@ -160,7 +182,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     if (!steps?.length || mode !== "paused") return;
     try {
       await trainer.startOrResume();
-      await sendTarget(stepsRef.current[stepIndexRef.current].watts);
+      await applyStep(stepsRef.current[stepIndexRef.current]);
       setMode("running");
       startWorkoutTimer();
     } catch (e) { }
@@ -172,6 +194,8 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       await trainer.stop();
     } catch { }
     remainingRef.current = 0;
+    testPowerTotalRef.current = 0;
+    testPowerCountRef.current = 0;
     stepIndexRef.current = 0;
     stepsRef.current = [];
     setStepIndex(0);
@@ -241,9 +265,9 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
             </strong>
           </div>
           <div className="metric">
-            <small><span className="metric-icon">🎯</span> ERG TARGET</small>
+            <small><span className="metric-icon">🎯</span> {current?.control === "free" ? "FREE RIDE · ERG OFF" : "ERG TARGET"}</small>
             <strong>
-              {(current?.watts ?? target) || "—"}
+              {current?.control === "free" ? "—" : ((current?.watts ?? target) || "—")}
               <i>W</i>
             </strong>
           </div>
