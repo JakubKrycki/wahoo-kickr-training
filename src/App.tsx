@@ -83,7 +83,6 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
   useEffect(() => { localStorage.setItem('z2LongRideHours', String(longRideHours)); }, [longRideHours]);
-  useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(history)); }, [history]);
 
   const startWorkout = useCallback((workout: WorkoutType) => {
     setSelectedWorkout(workout);
@@ -113,7 +112,7 @@ export default function App() {
         </>
       ) : (
         <>
-          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} setMode={setMode} steps={trainingSteps} />
+          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} setMode={setMode} steps={trainingSteps} onTestComplete={(averagePower) => setFtp(Math.round(averagePower * 0.95))} />
           <ShortcutsTile />
         </>
       )
