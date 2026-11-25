@@ -1,4 +1,5 @@
 export type Segment = {
+  control?: 'erg' | 'free';
   id: string;
   label: string;
   minutes: number;

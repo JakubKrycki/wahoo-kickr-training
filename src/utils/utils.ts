@@ -51,7 +51,7 @@ export function getTestSteps(testKind: TestType, ftp: number) {
   let protocol: Segment[];
   if (testKind === TestType.MIN_20) {
     protocol = [warm, prep, open, easy,
-      { id: "test20", label: "20-minute maximal effort", minutes: 20, watts: setFtpTarget(ftp, 100) }, cooldown];
+      { id: "test20", label: "20-minute free ride", minutes: 20, watts: 0, control: "free" }, cooldown];
   } else {
     const ramp: Segment[] = Array.from({ length: 15 }, (_, i) => ({
       id: `ramp${i}`, label: `Ramp · ${i + 1} min`, minutes: 1,
