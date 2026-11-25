@@ -25,7 +25,8 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const startedRef = useRef(false);
 
   const current = steps !== undefined ? steps[stepIndex] : undefined;
-  const totalSeconds = steps?.reduce((sum, s) => sum + s.minutes * 60, 0);
+  const totalSeconds = steps?.reduce((sum, s) => sum + s.minutes * 60, 0) ?? 0;
+  const workoutRemaining = Math.max(0, totalSeconds - elapsed);
 
   useEffect(() => {
     if (timerRef.current) {
@@ -227,34 +228,34 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     <section id="session" className="section">
       <div className="section-title"><div><div className="eyebrow">FOCUS ON THE EFFORT</div><h2>Live session</h2></div><div className={`pill ${mode === "running" ? "active" : ""}`}>{mode.toUpperCase()}</div></div>
       <div className="panel session">
-        <div className="session-main"><div className="eyebrow">{current?.label ?? "READY WHEN YOU ARE"}</div><div className="countdown">{mode === "finished" ? "DONE" : current ? fmt(remaining) : "—:—"}</div><div className="session-sub">{current
+        <div className="session-main"><div className="session-phase">{current?.label ?? "READY WHEN YOU ARE"}</div><div className="countdown">{mode === "finished" ? "DONE" : current ? fmt(remaining) : "—:—"}</div><div className="session-sub">{current
           ? `STEP ${current.index} OF ${current.total} · ${fmt(segmentDurationSeconds(current))}`
-          : "Start a workout"}</div></div>
+          : "Start a workout"}</div><div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div></div>
 
         <div className="session-target">
           <div className="metric">
-            <small>CURRENT POWER</small>
+            <small><span className="metric-icon">⚡</span> CURRENT POWER</small>
             <strong>
               {power ?? "—"}
               <i>W</i>
             </strong>
           </div>
           <div className="metric">
-            <small>ERG TARGET</small>
+            <small><span className="metric-icon">🎯</span> ERG TARGET</small>
             <strong>
               {(current?.watts ?? target) || "—"}
               <i>W</i>
             </strong>
           </div>
           <div className="metric">
-            <small>CADENCE</small>
+            <small><span className="metric-icon">🚴</span> CADENCE</small>
             <strong>
               {cadence ?? "—"}
               <i>RPM</i>
             </strong>
           </div>
           <div className="metric">
-            <small>HEART RATE</small>
+            <small><span className="metric-icon heart-pulse">♥</span> HEART RATE</small>
             <strong>
               {heartRate ?? "—"}
               <i>BPM</i>

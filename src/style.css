@@ -842,3 +842,83 @@ kbd {
 
 .long-ride-duration { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 360px; margin: 16px 0; color: #b7c7bc; font-size: 12px; }
 .long-ride-duration input { width: 100px; background: #101a16; color: #eef4ef; border: 1px solid #3b5044; border-radius: 7px; padding: 10px 12px; }
+
+
+/* Live workout display readability improvements */
+.session {
+  padding: clamp(24px, 4vw, 42px);
+  grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.6fr);
+  gap: 24px 32px;
+}
+.session-phase {
+  font: 600 clamp(26px, 3.6vw, 42px) 'Space Grotesk';
+  color: #c9f2d2;
+  line-height: 1.12;
+  margin: 4px 0 12px;
+}
+.session-main .countdown {
+  font-size: clamp(68px, 8vw, 110px);
+  margin: 0 0 8px;
+}
+.workout-remaining {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #91a59a;
+  font: 11px 'DM Mono';
+  letter-spacing: .06em;
+}
+.workout-remaining strong {
+  font: 600 24px 'Space Grotesk';
+  color: #eef4ef;
+  letter-spacing: -.02em;
+}
+.session-target {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  align-items: center;
+}
+.session-target small {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: clamp(11px, 1.2vw, 14px);
+  letter-spacing: .06em;
+  color: #b4c8ba;
+}
+.metric-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.session-target strong {
+  font-size: clamp(46px, 6.2vw, 82px);
+  margin-top: 4px;
+}
+.session-target i {
+  font-size: clamp(13px, 1.5vw, 18px);
+  color: #a4e4b1;
+}
+.heart-pulse {
+  color: #ff7e83;
+  display: inline-block;
+  transform-origin: center;
+  animation: heartPulse 1.15s ease-in-out infinite;
+}
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); opacity: .92; }
+  15% { transform: scale(1.22); opacity: 1; }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.14); }
+  60% { transform: scale(1); }
+}
+@media (max-width: 900px) {
+  .session { grid-template-columns: 1fr; }
+  .session-target { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; }
+}
+@media (max-width: 480px) {
+  .session-target strong { font-size: clamp(42px, 11vw, 64px); }
+  .session-phase { font-size: clamp(25px, 7vw, 34px); }
+  .workout-remaining strong { font-size: 21px; }
+}
