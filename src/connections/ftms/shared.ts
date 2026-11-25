@@ -10,6 +10,8 @@ export interface Trainer {
 
   setTargetPower(watts: number): Promise<void>;
 
+  setTargetResistance(level?: number): Promise<void>;
+
   startOrResume(): Promise<void>;
 
   pause(): Promise<void>;
