@@ -16,6 +16,7 @@ export class FtmsTrainer implements Trainer {
   private pendingResolve?: (ok: boolean) => void;
   private pendingReject?: (error: Error) => void;
   private timeout?: number;
+  private supportsResistanceTarget = false;
 
   get connected() { return !!this.server?.connected; }
 
@@ -51,8 +52,15 @@ export class FtmsTrainer implements Trainer {
     await this.controlPoint.startNotifications();
     this.controlPoint.addEventListener("characteristicvaluechanged", this.handleControlResponse);
 
-    // Feature characteristic is optional for basic control; read it for diagnostics if present.
-    try { await service.getCharacteristic(FITNESS_MACHINE_FEATURE); } catch { /* optional */ }
+    // FTMS Feature's second 32-bit field advertises supported target-setting procedures.
+    // Bit 0 means Set Target Resistance Level is supported.
+    try {
+      const feature = await service.getCharacteristic(FITNESS_MACHINE_FEATURE);
+      const value = await feature.readValue();
+      if (value.byteLength >= 8) this.supportsResistanceTarget = (value.getUint32(4, true) & 1) !== 0;
+    } catch {
+      this.supportsResistanceTarget = false;
+    }
 
     await this.command(new Uint8Array([0x00])); // Request Control
   }
@@ -136,6 +144,18 @@ export class FtmsTrainer implements Trainer {
     }
   }
 
+  async setTargetResistance(level = 0) {
+    if (!this.supportsResistanceTarget) {
+      throw new Error("This trainer has not advertised FTMS resistance control. Free-ride test cannot safely switch out of ERG mode.");
+    }
+    if (!Number.isFinite(level)) throw new Error("Invalid resistance level.");
+    const safeLevel = Math.max(-100, Math.min(100, Math.round(level * 10)));
+    const payload = new Uint8Array(3);
+    payload[0] = 0x04; // Set Target Resistance Level (0.1 units)
+    new DataView(payload.buffer).setInt16(1, safeLevel, true);
+    await this.command(payload);
+  }
+
   async setTargetPower(watts: number) {
     if (!Number.isFinite(watts)) throw new Error("Invalid power target.");
     const safeWatts = Math.max(0, Math.min(1800, Math.round(watts)));
@@ -153,5 +173,6 @@ export class FtmsTrainer implements Trainer {
     if (this.device?.gatt?.connected) this.device.gatt.disconnect();
     this.server = undefined;
     this.controlPoint = undefined;
+    this.supportsResistanceTarget = false;
   }
 }
