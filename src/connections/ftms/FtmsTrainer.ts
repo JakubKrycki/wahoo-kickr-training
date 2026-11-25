@@ -53,11 +53,11 @@ export class FtmsTrainer implements Trainer {
     this.controlPoint.addEventListener("characteristicvaluechanged", this.handleControlResponse);
 
     // FTMS Feature's second 32-bit field advertises supported target-setting procedures.
-    // Bit 0 means Set Target Resistance Level is supported.
+    // Bit 2 means Set Target Resistance Level is supported.
     try {
       const feature = await service.getCharacteristic(FITNESS_MACHINE_FEATURE);
       const value = await feature.readValue();
-      if (value.byteLength >= 8) this.supportsResistanceTarget = (value.getUint32(4, true) & 1) !== 0;
+      if (value.byteLength >= 8) this.supportsResistanceTarget = (value.getUint32(4, true) & 0x00000004) !== 0;
     } catch {
       this.supportsResistanceTarget = false;
     }
