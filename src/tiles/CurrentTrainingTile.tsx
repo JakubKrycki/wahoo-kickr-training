@@ -227,12 +227,34 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   return (
     <section id="session" className="section">
       <div className="section-title"><div><div className="eyebrow">FOCUS ON THE EFFORT</div><h2>Live session</h2></div><div className={`pill ${mode === "running" ? "active" : ""}`}>{mode.toUpperCase()}</div></div>
-      <div className="panel session">
-        <div className="session-main"><div className="session-phase">{current?.label ?? "READY WHEN YOU ARE"}</div><div className="countdown">{mode === "finished" ? "DONE" : current ? fmt(remaining) : "—:—"}</div><div className="session-sub">{current
-          ? `STEP ${current.index} OF ${current.total} · ${fmt(segmentDurationSeconds(current))}`
-          : "Start a workout"}</div><div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div></div>
+      <div className="live-session-layout">
+        <aside className="workout-step-sidebar" aria-label="Workout steps">
+          <div className="workout-step-sidebar-heading">
+            <span className="eyebrow">WORKOUT PLAN</span>
+            <strong>{stepsRef.current.length} STEPS</strong>
+          </div>
+          <ol className="workout-step-list">
+            {stepsRef.current.map((step, index) => {
+              const isPast = mode === "finished" || index < stepIndex;
+              const isCurrent = mode !== "finished" && index === stepIndex;
+              return (
+                <li key={step.id + "-" + index} className={`workout-step-item ${isPast ? "is-past" : isCurrent ? "is-current" : "is-upcoming"}`} aria-current={isCurrent ? "step" : undefined}>
+                  <span className="workout-step-number">{isPast ? "✓" : index + 1}</span>
+                  <span className="workout-step-details">
+                    <strong>{step.label}</strong>
+                    <span>{fmt(segmentDurationSeconds(step))} <i>·</i> {step.watts} W</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
+        <div className="panel session">
+          <div className="session-main"><div className="session-phase">{current?.label ?? "READY WHEN YOU ARE"}</div><div className="countdown">{mode === "finished" ? "DONE" : current ? fmt(remaining) : "—:—"}</div><div className="session-sub">{current
+            ? `STEP ${current.index} OF ${current.total} · ${fmt(segmentDurationSeconds(current))}`
+            : "Start a workout"}</div><div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div></div>
 
-        <div className="session-target">
+          <div className="session-target">
           <div className="metric">
             <small><span className="metric-icon">⚡</span> CURRENT POWER</small>
             <strong>
@@ -264,7 +286,8 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
         </div>
 
         <div className="progress-track"><div style={{ width: `${totalSeconds ? Math.min(100, elapsed / totalSeconds * 100) : 0}%` }} /></div>
-        <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : <button className="primary" onClick={() => void resume()}>Resume</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
+          <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : <button className="primary" onClick={() => void resume()}>Resume</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
+        </div>
       </div>
     </section>
   );
