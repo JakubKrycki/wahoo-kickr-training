@@ -8,16 +8,14 @@ export interface FtpTestTileData {
   setFtp: React.Dispatch<React.SetStateAction<number>>;
   connected: boolean;
   mode: Mode;
+  history: number[];
+  setHistory: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
-export const FtpTestTile = ({ connected, mode, runFtpTest, ftp, setFtp, setTestKind }: FtpTestTileData) => {
+export const FtpTestTile = ({ connected, mode, runFtpTest, ftp, setFtp, setTestKind, history, setHistory }: FtpTestTileData) => {
   const [testAverage, setTestAverage] = useState("");
   const [testFinalMinute, setTestFinalMinute] = useState("");
 
-
-  const [history, setHistory] = useState<number[]>(() => {
-    try { return JSON.parse(localStorage.getItem("ftpHistory") || "[]"); } catch { return []; }
-  });
 
   function save20MinResult() {
     const avg = Number(testAverage);
