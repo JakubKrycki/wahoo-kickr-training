@@ -951,3 +951,57 @@ kbd {
   -webkit-appearance: none;
   margin: 0;
 }
+
+
+/* Dedicated current workout step tile */
+.current-step-card {
+  margin-bottom: 14px;
+  padding: 20px 26px;
+}
+.current-step-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.current-step-number {
+  color: #a4e4b1;
+  font: 11px 'DM Mono';
+  letter-spacing: .08em;
+}
+.current-step-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(130px, .35fr));
+  align-items: center;
+  gap: 20px;
+}
+.current-step-name {
+  color: #c9f2d2;
+  font: 600 clamp(22px, 3vw, 32px) 'Space Grotesk';
+}
+.current-step-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.current-step-metric small {
+  color: #91a59a;
+  font: 10px 'DM Mono';
+  letter-spacing: .08em;
+}
+.current-step-metric strong {
+  color: #eef4ef;
+  font: 600 clamp(22px, 3vw, 30px) 'Space Grotesk';
+  white-space: nowrap;
+}
+.current-step-metric i {
+  color: #a4e4b1;
+  font: 12px 'DM Mono';
+  font-style: normal;
+}
+@media (max-width: 760px) {
+  .current-step-card { padding: 18px; }
+  .current-step-details { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .current-step-name { grid-column: 1 / -1; }
+}
