@@ -115,6 +115,8 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
     const next = stepsRef.current[nextIndex];
 
+    // Skipping ends the current step immediately. Account for its unused
+    // time as elapsed so workout remaining reflects the time actually left.
     const skippedSeconds = remainingRef.current;
     setElapsed(value => value + skippedSeconds);
     stepIndexRef.current = nextIndex;
