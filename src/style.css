@@ -1137,3 +1137,107 @@ kbd {
     font-size: clamp(32px, 8vw, 40px);
   }
 }
+
+
+/* Live workout step list alongside the main session */
+.live-session-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.live-session-main { min-width: 0; }
+.workout-step-sidebar {
+  position: sticky;
+  top: 18px;
+  min-width: 0;
+  padding: 18px 14px;
+  border: 1px solid #304139;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #1b2722, #17211d);
+}
+.workout-step-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 12px;
+  border-bottom: 1px solid #304139;
+}
+.workout-step-sidebar-heading strong {
+  color: #91a59a;
+  font: 10px 'DM Mono';
+  letter-spacing: .08em;
+}
+.workout-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(68vh, 680px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 2px 3px;
+  scrollbar-width: thin;
+  scrollbar-color: #52695a transparent;
+}
+.workout-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+.workout-step-number {
+  display: inline-flex;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #304139;
+  color: #c4d2c8;
+  font: 10px 'DM Mono';
+}
+.workout-step-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.workout-step-details strong {
+  color: #e5eee7;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.workout-step-details > span {
+  color: #91a59a;
+  font: 10px 'DM Mono';
+}
+.workout-step-details i { color: #52695a; font-style: normal; padding: 0 2px; }
+.workout-step-item.is-past { opacity: .42; }
+.workout-step-item.is-past .workout-step-number { background: #26332c; color: #87958b; }
+.workout-step-item.is-current {
+  border-color: #63856d;
+  background: #24372b;
+}
+.workout-step-item.is-current .workout-step-number {
+  background: #a4e4b1;
+  color: #102017;
+  font-weight: 700;
+}
+.workout-step-item.is-current .workout-step-details strong { color: #c9f2d2; }
+@media (max-width: 1050px) {
+  .live-session-layout { display: block; }
+  .workout-step-sidebar { display: none; }
+}
+
+
+/* Keep the shortcuts tile separated beneath the main live workout panel */
+.live-session-main > .click-controls {
+  margin-top: 14px;
+}

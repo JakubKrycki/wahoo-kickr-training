@@ -6,7 +6,6 @@ import { Workout, Mode, WorkoutType, TestType } from './utils/types';
 import { buildSteps, getTestSteps } from './utils/utils';
 import { FtpTestTile } from './tiles/FtpTestTile';
 import { ConnectTrainerPopUp } from './tiles/ConnectTrainerPopUp';
-import { ShortcutsTile } from './tiles/ShortcutsTile';
 import { CurrentTrainingTile } from './tiles/CurrentTrainingTile';
 import { useHeartRateMonitor } from './connections/useHeartRateMonitor';
 import { useFtmsTrainer } from './connections/ftms/useFtmsTrainer';
@@ -138,11 +137,9 @@ export default function App() {
       ) : (
         <>
           <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateMonitor.connected} setMode={setMode} steps={trainingSteps} />
-          <ShortcutsTile />
         </>
       )
       }
-      <footer><span>KICKR INTERVAL COACH · LOCAL-FIRST</span><span>Training data stays in this browser.</span></footer>
     </main >
   );
 }

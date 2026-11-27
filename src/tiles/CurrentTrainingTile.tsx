@@ -2,6 +2,7 @@ import { SetStateAction, useEffect, useRef, useState } from 'react';
 import { Mode, Step } from '../utils/types';
 import { fmt, segmentDurationSeconds } from '../utils/utils';
 import { Trainer } from '../connections/ftms/shared';
+import { ShortcutsTile } from './ShortcutsTile';
 
 export interface CurrentTrainingTileData {
   trainer: Trainer;
@@ -23,9 +24,10 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const stepIndexRef = useRef(0);
   const remainingRef = useRef(0);
   const startedRef = useRef(false);
+  const stepListRef = useRef<HTMLOListElement>(null);
 
-  const current = steps !== undefined ? steps[stepIndex] : undefined;
-  const totalSeconds = steps?.reduce((sum, s) => sum + s.minutes * 60, 0) ?? 0;
+  const current = stepsRef.current[stepIndex] ?? steps?.[stepIndex];
+  const totalSeconds = steps?.reduce((sum, s) => sum + segmentDurationSeconds(s), 0) ?? 0;
   const workoutRemaining = Math.max(0, totalSeconds - elapsed);
 
   useEffect(() => {
@@ -33,6 +35,15 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       window.clearInterval(timerRef.current);
     }
   }, []);
+
+  useEffect(() => {
+    const list = stepListRef.current;
+    const activeStep = list?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!list || !activeStep) return;
+
+    const targetScrollTop = activeStep.offsetTop - list.offsetTop - (list.clientHeight - activeStep.offsetHeight) / 2;
+    list.scrollTo({ top: Math.max(0, Math.min(targetScrollTop, list.scrollHeight - list.clientHeight)), behavior: "smooth" });
+  }, [stepIndex, mode, remaining]);
 
   async function sendTarget(watts: number) {
     await trainer.setTargetPower(watts);
@@ -224,6 +235,29 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
   return (
     <section id="session" className="section">
+      <div className="live-session-layout">
+        <aside className="workout-step-sidebar" aria-label="Workout steps">
+          <div className="workout-step-sidebar-heading">
+            <span className="eyebrow">WORKOUT PLAN</span>
+            <strong>{stepsRef.current.length} STEPS</strong>
+          </div>
+          <ol className="workout-step-list" ref={stepListRef}>
+            {stepsRef.current.map((step, index) => {
+              const isPast = mode === "finished" || index < stepIndex;
+              const isCurrent = mode !== "finished" && index === stepIndex;
+              return (
+                <li key={step.id + "-" + index} className={`workout-step-item ${isPast ? "is-past" : isCurrent ? "is-current" : "is-upcoming"}`} aria-current={isCurrent ? "step" : undefined}>
+                  <span className="workout-step-number">{isPast ? "✓" : index + 1}</span>
+                  <span className="workout-step-details">
+                    <strong>{step.label}</strong>
+                    <span>{fmt(segmentDurationSeconds(step))} <i>·</i> {step.watts} W</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
+        <div className="live-session-main">
       <div className="panel current-step-card">
         <div className="current-step-heading">
           <span className="eyebrow">CURRENT STEP</span>
@@ -277,6 +311,9 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
         <div className="progress-track"><div style={{ width: `${totalSeconds ? Math.min(100, elapsed / totalSeconds * 100) : 0}%` }} /></div>
         <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : <button className="primary" onClick={() => void resume()}>Resume</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
+      </div>
+      <ShortcutsTile />
+        </div>
       </div>
     </section>
   );
