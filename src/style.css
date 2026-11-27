@@ -1235,3 +1235,25 @@ kbd {
   .live-session-layout { display: block; }
   .workout-step-sidebar { display: none; }
 }
+
+
+/* Keep keyboard shortcuts directly beneath the workout plan in the sidebar */
+.workout-step-sidebar .click-controls {
+  margin-top: 14px;
+  padding: 14px 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.workout-step-sidebar .click-controls > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b7c7bc;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.workout-step-sidebar .click-controls kbd {
+  flex: 0 0 auto;
+}
