@@ -9,11 +9,12 @@ export interface CurrentTrainingTileData {
   power: number | null;
   cadence: number | null;
   heartRate: number | null;
+  heartRateConnected: boolean;
   setMode: React.Dispatch<SetStateAction<Mode>>;
   steps: Step[] | undefined;
 }
 
-export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, heartRate, steps }: CurrentTrainingTileData) => {
+export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, heartRate, heartRateConnected, steps }: CurrentTrainingTileData) => {
   const [remaining, setRemaining] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [target, setTarget] = useState(0);
@@ -226,11 +227,27 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
   return (
     <section id="session" className="section">
-      <div className="section-title"><div><div className="eyebrow">FOCUS ON THE EFFORT</div><h2>Live session</h2></div><div className={`pill ${mode === "running" ? "active" : ""}`}>{mode.toUpperCase()}</div></div>
+      <div className="panel current-step-card">
+        <div className="current-step-heading">
+          <span className="eyebrow">CURRENT STEP</span>
+          <span className="current-step-number">{current ? `STEP ${current.index} OF ${current.total}` : "NO ACTIVE STEP"}</span>
+        </div>
+        <div className="current-step-details">
+          <div className="current-step-name">{current?.label ?? (mode === "finished" ? "Workout complete" : "Ready when you are")}</div>
+          <div className="current-step-metric">
+            <small>TIME REMAINING</small>
+            <strong>{mode === "finished" ? "00:00" : current ? fmt(remaining) : "—:—"}</strong>
+          </div>
+          <div className="current-step-metric">
+            <small>TARGET POWER</small>
+            <strong>{current?.watts ?? target}<i> W</i></strong>
+          </div>
+        </div>
+      </div>
       <div className="panel session">
-        <div className="session-main"><div className="session-phase">{current?.label ?? "READY WHEN YOU ARE"}</div><div className="countdown">{mode === "finished" ? "DONE" : current ? fmt(remaining) : "—:—"}</div><div className="session-sub">{current
-          ? `STEP ${current.index} OF ${current.total} · ${fmt(segmentDurationSeconds(current))}`
-          : "Start a workout"}</div><div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div></div>
+        <div className="session-main">
+          <div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div>
+        </div>
 
         <div className="session-target">
           <div className="metric">
@@ -254,13 +271,15 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
               <i>RPM</i>
             </strong>
           </div>
-          <div className="metric">
-            <small><span className="metric-icon heart-pulse">♥</span> HEART RATE</small>
-            <strong>
-              {heartRate ?? "—"}
-              <i>BPM</i>
-            </strong>
-          </div>
+          {heartRateConnected ? (
+            <div className="metric">
+              <small><span className="metric-icon heart-pulse">♥</span> HEART RATE</small>
+              <strong>
+                {heartRate ?? "—"}
+                <i>BPM</i>
+              </strong>
+            </div>
+          ) : null}
         </div>
 
         <div className="progress-track"><div style={{ width: `${totalSeconds ? Math.min(100, elapsed / totalSeconds * 100) : 0}%` }} /></div>
