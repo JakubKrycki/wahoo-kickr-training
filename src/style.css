@@ -932,3 +932,22 @@ kbd {
 .ftp-header-control:hover .ftp-edit-button, .ftp-header-control:focus-within .ftp-edit-button { opacity: 1; }
 .ftp-header-input { width: 76px; background: #101a16; color: #eef4ef; border: 1px solid #a4e4b1; border-radius: 5px; padding: 5px 7px; font: 600 16px 'Space Grotesk'; }
 @media (max-width: 760px) { .header-controls { gap: 8px; } .ftp-header-control { min-height: 38px; } }
+
+/* Keep FTP edit input visually borderless and remove number spinner controls */
+.ftp-header-input {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.ftp-header-input:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+.ftp-header-input::-webkit-outer-spin-button,
+.ftp-header-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
