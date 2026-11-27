@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { IntervalWorkoutTile } from './tiles/IntervalWorkoutTile';
 import { WorkoutTemplatesTile } from './tiles/WorkoutTemplatesTile';
+import { WorkoutEditorTile } from './tiles/WorkoutEditorTile';
 import { getWorkoutTemplates, WorkoutTemplateId } from './utils/workoutTemplates';
-import { Workout, Mode, WorkoutType, TestType } from './utils/types';
+import { Workout, Mode, WorkoutType, TestType, Step } from './utils/types';
 import { buildSteps, getTestSteps } from './utils/utils';
 import { FtpTestTile } from './tiles/FtpTestTile';
 import { ConnectTrainerPopUp } from './tiles/ConnectTrainerPopUp';
@@ -43,6 +43,7 @@ export default function App() {
   };
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutType>();
   const [workout, setWorkout] = useState<Workout>(() => JSON.parse(localStorage.getItem("workout") || "null") || initial);
+  const [customSteps, setCustomSteps] = useState<Step[]>([]);
   const [testKind, setTestKind] = useState<TestType>(TestType.MIN_20);
   const [mode, setMode] = useState<Mode>("idle");
 
@@ -53,9 +54,10 @@ export default function App() {
 
   const trainingSteps = useMemo(() => {
     if (selectedWorkout === WorkoutType.INTERVAL) return buildSteps(workout);
+    if (selectedWorkout === WorkoutType.CUSTOM) return customSteps;
     if (selectedWorkout === WorkoutType.TEMPLATE) return templateSteps;
     return getTestSteps(testKind, ftp);
-  }, [ftp, selectedWorkout, testKind, templateSteps, workout]);
+  }, [customSteps, ftp, selectedWorkout, testKind, templateSteps, workout]);
 
   useEffect(() => {
     const unsubscribe = trainer.onConnectionChange(connected => {
@@ -67,30 +69,19 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = trainer.onData((data) => {
-      if (data.power !== undefined) {
-        setPower(data.power);
-      }
-
-      if (data.cadence !== undefined) {
-        setCadence(data.cadence);
-      }
+      if (data.power !== undefined) setPower(data.power);
+      if (data.cadence !== undefined) setCadence(data.cadence);
     });
-
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [trainer]);
 
-  useEffect(() => {
-    localStorage.setItem("workout", JSON.stringify(workout));
-  }, [workout]);
-
+  useEffect(() => { localStorage.setItem("workout", JSON.stringify(workout)); }, [workout]);
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
   useEffect(() => { localStorage.setItem('z2LongRideHours', String(longRideHours)); }, [longRideHours]);
   useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(ftpHistory)); }, [ftpHistory]);
 
-  const startWorkout = useCallback((workout: WorkoutType) => {
-    setSelectedWorkout(workout);
+  const startWorkout = useCallback((type: WorkoutType) => {
+    setSelectedWorkout(type);
     setMode("running");
   }, []);
 
@@ -130,15 +121,12 @@ export default function App() {
       {mode === "idle" ? (
         <>
           <WorkoutTemplatesTile templates={templates} selected={selectedTemplate} onSelect={setSelectedTemplate} connected={trainer.connected} onStart={() => startWorkout(WorkoutType.TEMPLATE)} longRideHours={longRideHours} onLongRideHoursChange={setLongRideHours} />
-          <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={trainer.connected} mode={mode} runWorkout={() => startWorkout(WorkoutType.INTERVAL)} />
+          <WorkoutEditorTile connected={trainer.connected} onStart={steps => { setCustomSteps(steps); startWorkout(WorkoutType.CUSTOM); }} />
           <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} history={ftpHistory} setHistory={setFtpHistory} />
         </>
       ) : (
-        <>
-          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateConnected} setMode={setMode} steps={trainingSteps} />
-        </>
-      )
-      }
-    </main >
+        <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateConnected} setMode={setMode} steps={trainingSteps} />
+      )}
+    </main>
   );
 }
