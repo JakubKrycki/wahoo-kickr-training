@@ -63,8 +63,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       startWorkoutTimer();
     } catch (error) {
       setCommandError(error instanceof Error ? error.message : "Could not start the workout.");
-      setMode("idle");
-      startedRef.current = false;
+      setMode("paused");
     }
   }
 
@@ -98,7 +97,12 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
     // If paused, the new target will be sent when resuming.
     if (mode === "running") {
-      void trainer.setTargetPower(nextWatts).catch(error => setCommandError(error instanceof Error ? error.message : "Could not update target power."));
+      void trainer.setTargetPower(nextWatts).catch(error => {
+        setCommandError(error instanceof Error ? error.message : "Could not update target power.");
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        timerRef.current = undefined;
+        setMode("paused");
+      });
     }
   }
 
@@ -204,7 +208,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setStepIndex(0);
     setElapsed(0);
     setRemaining(0);
-    setMode("idle");
+    setMode(stopError ? "paused" : "idle");
     setCommandError(stopError);
     startedRef.current = false;
   }
