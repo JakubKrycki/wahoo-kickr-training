@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Segment, Step, WorkoutType } from "../utils/types";
+import { Segment, Step } from "../utils/types";
+import "./WorkoutEditorTile.css";
 import { fmt, makeId, segmentDurationSeconds } from "../utils/utils";
 
 type RepeatBlock = { type: "repeat"; id: string; steps: Segment[]; repetitions: number };
