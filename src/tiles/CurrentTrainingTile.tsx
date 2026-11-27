@@ -194,9 +194,12 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   async function stop() {
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = undefined;
+    let stopError: string | null = null;
     try {
       await trainer.stop();
-    } catch { }
+    } catch (error) {
+      stopError = error instanceof Error ? error.message : "Could not stop the trainer.";
+    }
     remainingRef.current = 0;
     stepIndexRef.current = 0;
     stepsRef.current = [];
@@ -204,7 +207,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setElapsed(0);
     setRemaining(0);
     setMode("idle");
-    setCommandError(null);
+    setCommandError(stopError);
     startedRef.current = false;
   }
 
