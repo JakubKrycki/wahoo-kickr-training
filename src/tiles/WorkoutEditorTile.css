@@ -1,0 +1,42 @@
+.workout-editor-toolbar,.editor-actions,.editor-save-actions,.editor-repeat-heading,.editor-step-actions,.repeat-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.workout-editor-toolbar { margin-bottom:18px; }
+.workout-editor-toolbar select,.workout-editor select { width:100%; background:#101a16; color:#eef4ef; border:1px solid #3b5044; border-radius:7px; padding:11px 12px; }
+.workout-editor-steps { display:flex; flex-direction:column; gap:10px; margin:22px 0; }
+.editor-step { display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; gap:12px; padding:14px; border:1px solid #33463b; border-radius:10px; background:#19251f; }
+.select-step { display:flex; justify-content:center; }
+.select-step input { accent-color:#a4e4b1; width:16px; height:16px; }
+.editor-step-fields { display:grid; grid-template-columns:minmax(130px,2fr) repeat(3,minmax(75px,1fr)); gap:10px; }
+.editor-step-fields label,.repeat-controls label { display:flex; flex-direction:column; gap:6px; color:#9eafa4; font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+.editor-step-fields input,.repeat-controls input { min-width:0; width:100%; padding:9px 10px; color:#eef4ef; background:#101a16; border:1px solid #3b5044; border-radius:6px; }
+.editor-step-actions { flex-direction:column; gap:5px; }
+.icon-button { width:27px; height:27px; border:1px solid #405448; border-radius:6px; background:#26372e; color:#dce8df; font-size:15px; }
+.editor-repeat { padding:14px 16px; border:1px solid #63856d; border-radius:10px; background:#203128; }
+.editor-repeat-heading { justify-content:flex-start; flex-wrap:wrap; color:#c9f2d2; font:10px 'DM Mono'; letter-spacing:.07em; }
+.editor-repeat-heading span { color:#a4e4b1; }
+.editor-repeat-heading .text-button { margin-left:auto; padding:0; }
+.repeat-step-preview { padding:7px 0 0 10px; color:#b7c7bc; font-size:12px; }
+.editor-actions { align-items:flex-end; padding:4px 0 20px; border-bottom:1px solid #33463b; flex-wrap:wrap; }
+.repeat-controls { align-items:flex-end; }
+.repeat-controls label { width:130px; }
+.workout-chart-wrap { margin-top:22px; padding:16px; border:1px solid #33463b; border-radius:10px; background:#101a16; }
+.workout-chart-title { display:flex; justify-content:space-between; gap:12px; color:#91a59a; font:10px 'DM Mono'; letter-spacing:.1em; }
+.workout-chart-title span { color:#a4e4b1; }
+.workout-chart { display:block; width:100%; margin-top:8px; overflow:visible; }
+.chart-gridline { stroke:#304139; stroke-width:1; stroke-dasharray:3 4; }
+.chart-axis { stroke:#718078; stroke-width:1.2; }
+.chart-label { fill:#91a59a; font:10px 'DM Mono'; }
+.chart-axis-title { fill:#a4e4b1; font:9px 'DM Mono'; letter-spacing:.08em; }
+.chart-step { fill:#a4e4b1; }
+.chart-step-alt { fill:#74a986; }
+.chart-line { fill:none; stroke:#a4e4b1; stroke-width:3; stroke-linejoin:round; stroke-linecap:round; }
+.editor-save-actions { justify-content:flex-end; flex-wrap:wrap; }
+@media(max-width:760px) {
+ .editor-step { grid-template-columns:22px minmax(0,1fr); }
+ .editor-step-fields { grid-column:2; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .editor-step-actions { grid-column:2; flex-direction:row; justify-content:flex-end; }
+ .workout-editor-toolbar { align-items:stretch; flex-direction:column; }
+ .editor-actions { align-items:stretch; flex-direction:column; }
+ .repeat-controls { align-items:flex-end; justify-content:flex-start; flex-wrap:wrap; }
+ .builder-footer { align-items:flex-start; flex-direction:column; gap:16px; }
+ .editor-save-actions { justify-content:flex-start; }
+}
