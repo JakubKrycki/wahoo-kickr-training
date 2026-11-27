@@ -43,7 +43,6 @@ button:disabled {
 .section-title,
 .builder-footer,
 .reps-row,
-.live-head,
 .session-actions,
 footer {
   display: flex;
@@ -84,7 +83,6 @@ footer,
 .segment-title small,
 .reps-row small,
 .builder-footer small,
-.live-stats small,
 .session-target small {
   font-family: 'DM Mono', monospace;
   letter-spacing: .1em;
@@ -120,33 +118,6 @@ footer,
   background: linear-gradient(145deg, #1b2722, #17211d);
   border: 1px solid #304139;
   border-radius: 17px
-}
-
-.hero {
-  margin-top: 32px;
-  padding: 34px;
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 30px;
-  align-items: center
-}
-
-.hero h2 {
-  font-size: clamp(36px, 5vw, 58px);
-  line-height: 1.02;
-  margin: 17px 0
-}
-
-.hero h2 em {
-  font-style: normal;
-  color: #9cdaad
-}
-
-.hero p {
-  color: #a8b8ad;
-  max-width: 430px;
-  line-height: 1.7;
-  font-size: 14px
 }
 
 .primary,
@@ -186,72 +157,6 @@ footer,
   font-size: 11px;
   margin-top: 13px;
   min-height: 15px
-}
-
-.live-card {
-  background: #101a16;
-  border: 1px solid #344a3d;
-  border-radius: 12px;
-  padding: 22px
-}
-
-.live-head {
-  display: flex;
-  justify-content: space-between
-}
-
-.watts {
-  font: 500 76px 'Space Grotesk';
-  letter-spacing: -.06em;
-  margin: 24px 0 0
-}
-
-.watts small {
-  font-size: 19px;
-  color: #9cdaad;
-  margin-left: 7px
-}
-
-.telemetry-label {
-  margin-top: -4px
-}
-
-.live-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 26px;
-  padding-top: 17px;
-  border-top: 1px solid #2c3d33
-}
-
-.live-stats div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px
-}
-
-.live-stats b {
-  font: 500 20px 'Space Grotesk'
-}
-
-.tabs {
-  display: flex;
-  gap: 30px;
-  padding: 24px 4px 12px;
-  border-bottom: 1px solid #293a31;
-  margin-bottom: 32px
-}
-
-.tabs a {
-  font: 10px 'DM Mono';
-  letter-spacing: .08em;
-  color: #9eb2a4;
-  text-decoration: none
-}
-
-.tabs a:hover {
-  color: #a4e4b1
 }
 
 .section {
@@ -593,23 +498,9 @@ footer {
     padding: 22px 16px
   }
 
-  .hero {
-    grid-template-columns: 1fr;
-    padding: 22px
-  }
-
   .segment-grid,
   .ftp-grid {
     grid-template-columns: 1fr
-  }
-
-  .tabs {
-    gap: 14px;
-    overflow: auto
-  }
-
-  .tabs a {
-    white-space: nowrap
   }
 
   .section-title h2 {

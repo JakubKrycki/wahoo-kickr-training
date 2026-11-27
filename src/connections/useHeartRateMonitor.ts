@@ -17,19 +17,24 @@ export function useHeartRateMonitor() {
     []
   );
 
+  const [heartRateConnected, setHeartRateConnected] = useState(heartRateMonitor.connected);
+
   useEffect(() => {
+    const unsubscribeConnection = heartRateMonitor.onConnectionChange(setHeartRateConnected);
     const unsubscribe = heartRateMonitor.onData(({ heartRate: bpm }) => {
       setHeartRate(bpm ?? null);
     });
 
     return () => {
       unsubscribe();
+      unsubscribeConnection();
       heartRateMonitor.dispose();
     };
   }, [heartRateMonitor]);
 
   return {
     heartRate,
+    heartRateConnected,
     heartRateMonitor,
   };
 }

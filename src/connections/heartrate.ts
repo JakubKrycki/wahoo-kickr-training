@@ -9,6 +9,7 @@ export class BluetoothHeartRateMonitor implements HeartRateMonitor {
   private device?: BluetoothDevice;
   private characteristic?: BluetoothRemoteGATTCharacteristic;
   private listeners = new Set<HeartRateListener>();
+  private connectionListeners = new Set<(connected: boolean) => void>();
 
   get connected() {
     return !!this.device?.gatt?.connected;
@@ -16,6 +17,11 @@ export class BluetoothHeartRateMonitor implements HeartRateMonitor {
 
   get isMock() {
     return false;
+  }
+
+  onConnectionChange(listener: (connected: boolean) => void) {
+    this.connectionListeners.add(listener);
+    return () => this.connectionListeners.delete(listener);
   }
 
   onData(listener: HeartRateListener) {
@@ -43,6 +49,7 @@ export class BluetoothHeartRateMonitor implements HeartRateMonitor {
     this.characteristic = characteristic;
     characteristic.addEventListener("characteristicvaluechanged", this.handleMeasurement);
     await characteristic.startNotifications();
+    this.connectionListeners.forEach(listener => listener(true));
   }
 
   private publish(data: HeartRateData) {
@@ -66,6 +73,7 @@ export class BluetoothHeartRateMonitor implements HeartRateMonitor {
     this.characteristic = undefined;
     this.device = undefined;
     this.publish({});
+    this.connectionListeners.forEach(listener => listener(false));
   };
 
   disconnect() {

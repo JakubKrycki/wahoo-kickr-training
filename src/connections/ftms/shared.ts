@@ -8,6 +8,8 @@ export interface Trainer {
 
   onData(listener: Listener): () => void;
 
+  onConnectionChange(listener: (connected: boolean) => void): () => void;
+
   setTargetPower(watts: number): Promise<void>;
 
   startOrResume(): Promise<void>;
@@ -32,6 +34,8 @@ export interface HeartRateMonitor {
   connect(): Promise<void>;
 
   onData(listener: HeartRateListener): () => void;
+
+  onConnectionChange(listener: (connected: boolean) => void): () => void;
 
   disconnect(): void;
 

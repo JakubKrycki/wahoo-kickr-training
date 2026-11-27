@@ -3,6 +3,7 @@ import { HeartRateData, HeartRateListener, HeartRateMonitor } from './ftms/share
 /** Simulates a BLE heart-rate monitor for local development. */
 export class MockHeartRateMonitor implements HeartRateMonitor {
   private listeners = new Set<HeartRateListener>();
+  private connectionListeners = new Set<(connected: boolean) => void>();
   private timer?: ReturnType<typeof setInterval>;
   private _connected = false;
   private bpm = 118;
@@ -15,6 +16,11 @@ export class MockHeartRateMonitor implements HeartRateMonitor {
     return true;
   }
 
+  onConnectionChange(listener: (connected: boolean) => void) {
+    this.connectionListeners.add(listener);
+    return () => this.connectionListeners.delete(listener);
+  }
+
   onData(listener: HeartRateListener) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -24,6 +30,7 @@ export class MockHeartRateMonitor implements HeartRateMonitor {
     if (this._connected) return;
 
     this._connected = true;
+    this.connectionListeners.forEach(listener => listener(true));
     this.bpm = 118;
     this.publish({ heartRate: this.bpm });
     this.timer = setInterval(() => this.generateReading(), 1000);
@@ -50,6 +57,7 @@ export class MockHeartRateMonitor implements HeartRateMonitor {
 
     this._connected = false;
     this.publish({});
+    this.connectionListeners.forEach(listener => listener(false));
   }
 
   dispose() {

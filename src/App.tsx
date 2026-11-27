@@ -9,7 +9,6 @@ import { ConnectTrainerPopUp } from './tiles/ConnectTrainerPopUp';
 import { CurrentTrainingTile } from './tiles/CurrentTrainingTile';
 import { useHeartRateMonitor } from './connections/useHeartRateMonitor';
 import { useFtmsTrainer } from './connections/ftms/useFtmsTrainer';
-import type { Trainer } from './connections/ftms/shared';
 
 const initial: Workout = {
   name: "5 × 4 min intervals",
@@ -22,16 +21,15 @@ const initial: Workout = {
 
 export default function App() {
   const { trainer } = useFtmsTrainer();
-  const { heartRate, heartRateMonitor } = useHeartRateMonitor();
+  const { heartRate, heartRateConnected, heartRateMonitor } = useHeartRateMonitor();
   const [showConnectionDialog, setShowConnectionDialog] = useState(true);
-
-  const handleConnect = async () => {
-    await heartRateMonitor.connect();
-  };
-
-  const handleDisconnect = async () => {
-    await heartRateMonitor.disconnect();
-  };
+  const [trainerConnected, setTrainerConnected] = useState(trainer.connected);
+  const [ftpHistory, setFtpHistory] = useState<number[]>(() => {
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem("ftpHistory") || "[]");
+      return Array.isArray(stored) ? stored.filter((value): value is number => Number.isInteger(value) && value > 0 && value <= 2000) : [];
+    } catch { return []; }
+  });
 
   const [power, setPower] = useState<number | null>(null);
   const [cadence, setCadence] = useState<number | null>(null);
@@ -60,12 +58,13 @@ export default function App() {
   }, [ftp, selectedWorkout, testKind, templateSteps, workout]);
 
   useEffect(() => {
-    if (!trainer.connected) {
-      setShowConnectionDialog(true);
-    }
-  }, []);
+    const unsubscribe = trainer.onConnectionChange(connected => {
+      setTrainerConnected(connected);
+      if (!connected) setShowConnectionDialog(true);
+    });
+    return unsubscribe;
+  }, [trainer]);
 
-  //this could be moved to currentTrainingTile
   useEffect(() => {
     const unsubscribe = trainer.onData((data) => {
       if (data.power !== undefined) {
@@ -82,19 +81,18 @@ export default function App() {
     };
   }, [trainer]);
 
-  //this could be moved to interval training maybe, but probably there should be separate component for FtpTestTile and IntervalWorkoutTile
   useEffect(() => {
     localStorage.setItem("workout", JSON.stringify(workout));
   }, [workout]);
 
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
   useEffect(() => { localStorage.setItem('z2LongRideHours', String(longRideHours)); }, [longRideHours]);
-  useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(history)); }, [history]);
+  useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(ftpHistory)); }, [ftpHistory]);
 
   const startWorkout = useCallback((workout: WorkoutType) => {
     setSelectedWorkout(workout);
     setMode("running");
-  }, [setSelectedWorkout, setMode]);
+  }, []);
 
   return (
     <main className="shell">
@@ -102,13 +100,14 @@ export default function App() {
         <ConnectTrainerPopUp
           trainer={trainer}
           heartRate={heartRate}
+          heartRateConnected={heartRateConnected}
           heartRateMonitor={heartRateMonitor}
           onClose={() => setShowConnectionDialog(false)}
         />
       ) : null}
       <header className="topbar">
         <div><div className="eyebrow">INDOOR CYCLING · ERG CONTROL</div><h1>KICKR <span>INTERVAL COACH</span></h1></div>
-        {trainer.connected ? (
+        {trainerConnected ? (
           <div className="header-controls">
             <div className="ftp-header-control">
               {editingFtp ? (
@@ -132,11 +131,11 @@ export default function App() {
         <>
           <WorkoutTemplatesTile templates={templates} selected={selectedTemplate} onSelect={setSelectedTemplate} connected={trainer.connected} onStart={() => startWorkout(WorkoutType.TEMPLATE)} longRideHours={longRideHours} onLongRideHoursChange={setLongRideHours} />
           <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={trainer.connected} mode={mode} runWorkout={() => startWorkout(WorkoutType.INTERVAL)} />
-          <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} />
+          <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} history={ftpHistory} setHistory={setFtpHistory} />
         </>
       ) : (
         <>
-          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateMonitor.connected} setMode={setMode} steps={trainingSteps} />
+          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateConnected} setMode={setMode} steps={trainingSteps} />
         </>
       )
       }

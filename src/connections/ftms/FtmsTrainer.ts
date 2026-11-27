@@ -13,11 +13,26 @@ export class FtmsTrainer implements Trainer {
   private server?: BluetoothRemoteGATTServer;
   private controlPoint?: BluetoothRemoteGATTCharacteristic;
   private listeners = new Set<Listener>();
+  private connectionListeners = new Set<(connected: boolean) => void>();
+  private handleDisconnected = () => {
+    this.server = undefined;
+    this.controlPoint = undefined;
+    this.notifyConnection(false);
+  };
   private pendingResolve?: (ok: boolean) => void;
   private pendingReject?: (error: Error) => void;
   private timeout?: number;
 
   get connected() { return !!this.server?.connected; }
+
+  onConnectionChange(listener: (connected: boolean) => void) {
+    this.connectionListeners.add(listener);
+    return () => this.connectionListeners.delete(listener);
+  }
+
+  private notifyConnection(connected: boolean) {
+    for (const listener of this.connectionListeners) listener(connected);
+  }
 
   onData(listener: Listener) {
     this.listeners.add(listener);
@@ -36,10 +51,8 @@ export class FtmsTrainer implements Trainer {
       filters: [{ services: [FTMS_SERVICE] }],
       optionalServices: [FTMS_SERVICE]
     });
-    this.device.addEventListener("gattserverdisconnected", () => {
-      this.server = undefined;
-      this.controlPoint = undefined;
-    });
+    this.device.removeEventListener("gattserverdisconnected", this.handleDisconnected);
+    this.device.addEventListener("gattserverdisconnected", this.handleDisconnected);
     this.server = await this.device.gatt!.connect();
     const service = await this.server.getPrimaryService(FTMS_SERVICE);
 
@@ -51,10 +64,20 @@ export class FtmsTrainer implements Trainer {
     await this.controlPoint.startNotifications();
     this.controlPoint.addEventListener("characteristicvaluechanged", this.handleControlResponse);
 
-    // Feature characteristic is optional for basic control; read it for diagnostics if present.
-    try { await service.getCharacteristic(FITNESS_MACHINE_FEATURE); } catch { /* optional */ }
+    // FTMS Target Setting Features is the second uint32 in this characteristic.
+    const feature = await service.getCharacteristic(FITNESS_MACHINE_FEATURE);
+    const featureValue = await feature.readValue();
+    if (featureValue.byteLength < 8) {
+      throw new Error("Trainer returned an incomplete FTMS feature descriptor.");
+    }
+    const targetSettingFeatures = featureValue.getUint32(4, true);
+    const supportsPowerTarget = (targetSettingFeatures & (1 << 3)) !== 0;
+    if (!supportsPowerTarget) {
+      throw new Error("This trainer does not advertise FTMS target power control.");
+    }
 
     await this.command(new Uint8Array([0x00])); // Request Control
+    this.notifyConnection(true);
   }
 
   private handleBikeData = (event: Event) => {
@@ -151,6 +174,7 @@ export class FtmsTrainer implements Trainer {
 
   disconnect() {
     if (this.device?.gatt?.connected) this.device.gatt.disconnect();
+    else this.handleDisconnected();
     this.server = undefined;
     this.controlPoint = undefined;
   }
