@@ -19,6 +19,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const [remaining, setRemaining] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
+  const [commandError, setCommandError] = useState<string | null>(null);
   const timerRef = useRef<number | undefined>(undefined);
   const stepsRef = useRef<Step[]>([]);
   const stepIndexRef = useRef(0);
@@ -26,7 +27,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const startedRef = useRef(false);
   const stepListRef = useRef<HTMLOListElement>(null);
 
-  const current = stepsRef.current[stepIndex] ?? steps?.[stepIndex];
+  const current = mode === "finished" ? undefined : stepsRef.current[stepIndex] ?? steps?.[stepIndex];
   const totalSeconds = steps?.reduce((sum, s) => sum + segmentDurationSeconds(s), 0) ?? 0;
   const workoutRemaining = Math.max(0, totalSeconds - elapsed);
 
@@ -54,7 +55,6 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     stepsRef.current = nextSteps;
     stepIndexRef.current = 0;
     remainingRef.current = segmentDurationSeconds(nextSteps[0]);
-    // setSteps(nextSteps);
     setStepIndex(0);
     setElapsed(0);
     setRemaining(remainingRef.current);
@@ -63,8 +63,10 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       await sendTarget(nextSteps[0].watts);
       setMode("running");
       startWorkoutTimer();
-    } catch (e) {
+    } catch (error) {
+      setCommandError(error instanceof Error ? error.message : "Could not start the workout.");
       setMode("idle");
+      startedRef.current = false;
     }
   }
 
@@ -95,11 +97,10 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     );
 
     stepsRef.current = nextSteps;
-    // setSteps(nextSteps);
 
     // If paused, the new target will be sent when resuming.
     if (mode === "running") {
-      void trainer.setTargetPower(nextWatts);
+      void trainer.setTargetPower(nextWatts).catch(error => setCommandError(error instanceof Error ? error.message : "Could not update target power."));
     }
   }
 
@@ -112,11 +113,19 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
     const next = stepsRef.current[nextIndex];
 
+    const skippedSeconds = remainingRef.current;
+    setElapsed(value => value + skippedSeconds);
     stepIndexRef.current = nextIndex;
+    remainingRef.current = segmentDurationSeconds(next);
     setStepIndex(nextIndex);
-    setRemaining(segmentDurationSeconds(next));
+    setRemaining(remainingRef.current);
 
-    void sendTarget(next.watts);
+    void sendTarget(next.watts).catch(error => {
+      setCommandError(error instanceof Error ? error.message : "Could not update trainer target.");
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      timerRef.current = undefined;
+      setMode("paused");
+    });
   }
 
   function startWorkoutTimer() {
@@ -153,6 +162,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
         if (timerRef.current) window.clearInterval(timerRef.current);
         timerRef.current = undefined;
         setMode("paused");
+        setCommandError(err instanceof Error ? err.message : "Could not advance trainer target.");
       });
     }, 1000);
   }
@@ -163,7 +173,11 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     try {
       await trainer.pause();
       setMode("paused");
-    } catch (e) { }
+      setCommandError(null);
+    } catch (error) {
+      setCommandError(error instanceof Error ? error.message : "Could not pause the trainer.");
+      startWorkoutTimer();
+    }
   }
   async function resume() {
     if (!steps?.length || mode !== "paused") return;
@@ -171,8 +185,11 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       await trainer.startOrResume();
       await sendTarget(stepsRef.current[stepIndexRef.current].watts);
       setMode("running");
+      setCommandError(null);
       startWorkoutTimer();
-    } catch (e) { }
+    } catch (error) {
+      setCommandError(error instanceof Error ? error.message : "Could not resume the trainer.");
+    }
   }
   async function stop() {
     if (timerRef.current) window.clearInterval(timerRef.current);
@@ -187,7 +204,20 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     setElapsed(0);
     setRemaining(0);
     setMode("idle");
+    setCommandError(null);
+    startedRef.current = false;
   }
+
+  useEffect(() => {
+    return trainer.onConnectionChange(connected => {
+      if (!connected && mode === "running") {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        timerRef.current = undefined;
+        setMode("paused");
+        setCommandError("Trainer disconnected. Reconnect it before resuming the workout.");
+      }
+    });
+  }, [trainer, mode, setMode]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -235,6 +265,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
   return (
     <section id="session" className="section">
+      {commandError ? <p className="connection-error" role="alert">{commandError}</p> : null}
       <div className="live-session-layout">
         <aside className="workout-step-sidebar" aria-label="Workout steps">
           <div className="workout-step-sidebar-heading">
