@@ -24,14 +24,13 @@ export default function App() {
   const { trainer } = useFtmsTrainer();
   const { heartRate, heartRateMonitor } = useHeartRateMonitor();
   const [showConnectionDialog, setShowConnectionDialog] = useState(true);
-
-  const handleConnect = async () => {
-    await heartRateMonitor.connect();
-  };
-
-  const handleDisconnect = async () => {
-    await heartRateMonitor.disconnect();
-  };
+  const [trainerConnected, setTrainerConnected] = useState(trainer.connected);
+  const [ftpHistory, setFtpHistory] = useState<number[]>(() => {
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem("ftpHistory") || "[]");
+      return Array.isArray(stored) ? stored.filter((value): value is number => Number.isInteger(value) && value > 0 && value <= 2000) : [];
+    } catch { return []; }
+  });
 
   const [power, setPower] = useState<number | null>(null);
   const [cadence, setCadence] = useState<number | null>(null);
@@ -60,10 +59,12 @@ export default function App() {
   }, [ftp, selectedWorkout, testKind, templateSteps, workout]);
 
   useEffect(() => {
-    if (!trainer.connected) {
-      setShowConnectionDialog(true);
-    }
-  }, []);
+    const unsubscribe = trainer.onConnectionChange(connected => {
+      setTrainerConnected(connected);
+      if (!connected) setShowConnectionDialog(true);
+    });
+    return unsubscribe;
+  }, [trainer]);
 
   //this could be moved to currentTrainingTile
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem("ftp", String(ftp)); }, [ftp]);
   useEffect(() => { localStorage.setItem('z2LongRideHours', String(longRideHours)); }, [longRideHours]);
-  useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(history)); }, [history]);
+  useEffect(() => { localStorage.setItem("ftpHistory", JSON.stringify(ftpHistory)); }, [ftpHistory]);
 
   const startWorkout = useCallback((workout: WorkoutType) => {
     setSelectedWorkout(workout);
@@ -108,7 +109,7 @@ export default function App() {
       ) : null}
       <header className="topbar">
         <div><div className="eyebrow">INDOOR CYCLING · ERG CONTROL</div><h1>KICKR <span>INTERVAL COACH</span></h1></div>
-        {trainer.connected ? (
+        {trainerConnected ? (
           <div className="header-controls">
             <div className="ftp-header-control">
               {editingFtp ? (
@@ -132,7 +133,7 @@ export default function App() {
         <>
           <WorkoutTemplatesTile templates={templates} selected={selectedTemplate} onSelect={setSelectedTemplate} connected={trainer.connected} onStart={() => startWorkout(WorkoutType.TEMPLATE)} longRideHours={longRideHours} onLongRideHoursChange={setLongRideHours} />
           <IntervalWorkoutTile workout={workout} setWorkout={setWorkout} ftp={ftp} connected={trainer.connected} mode={mode} runWorkout={() => startWorkout(WorkoutType.INTERVAL)} />
-          <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} />
+          <FtpTestTile runFtpTest={() => startWorkout(WorkoutType.TEST)} setTestKind={setTestKind} ftp={ftp} setFtp={setFtp} connected={trainer.connected} mode={mode} history={ftpHistory} setHistory={setFtpHistory} />
         </>
       ) : (
         <>
