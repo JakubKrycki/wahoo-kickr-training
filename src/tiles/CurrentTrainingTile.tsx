@@ -31,10 +31,8 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   const totalSeconds = steps?.reduce((sum, s) => sum + segmentDurationSeconds(s), 0) ?? 0;
   const workoutRemaining = Math.max(0, totalSeconds - elapsed);
 
-  useEffect(() => {
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
+  useEffect(() => () => {
+    if (timerRef.current) window.clearInterval(timerRef.current);
   }, []);
 
   useEffect(() => {
