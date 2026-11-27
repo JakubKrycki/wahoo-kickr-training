@@ -17,7 +17,6 @@ export interface CurrentTrainingTileData {
 export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, heartRate, heartRateConnected, steps }: CurrentTrainingTileData) => {
   const [remaining, setRemaining] = useState(0);
   const [elapsed, setElapsed] = useState(0);
-  const [target, setTarget] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const timerRef = useRef<number | undefined>(undefined);
   const stepsRef = useRef<Step[]>([]);
@@ -36,7 +35,6 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
   }, []);
 
   async function sendTarget(watts: number) {
-    setTarget(watts);
     await trainer.setTargetPower(watts);
   }
   async function beginSteps(nextSteps: Step[]) {
@@ -87,7 +85,6 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
 
     stepsRef.current = nextSteps;
     // setSteps(nextSteps);
-    setTarget(nextWatts);
 
     // If paused, the new target will be sent when resuming.
     if (mode === "running") {
@@ -240,7 +237,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
           </div>
           <div className="current-step-metric">
             <small>TARGET POWER</small>
-            <strong>{current?.watts ?? target}<i> W</i></strong>
+            <strong>{current?.watts ?? "—"}<i>{current ? " W" : ""}</i></strong>
           </div>
         </div>
       </div>
