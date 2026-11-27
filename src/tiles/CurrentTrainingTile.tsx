@@ -243,7 +243,10 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
       </div>
       <div className="panel session">
         <div className="session-main">
-          <div className="workout-remaining"><span>⏱</span> WORKOUT REMAINING <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong></div>
+          <div className="workout-remaining">
+            <span>WORKOUT REMAINING</span>
+            <strong>{mode === "finished" ? "00:00" : current ? fmt(workoutRemaining) : "—:—"}</strong>
+          </div>
         </div>
 
         <div className="session-target">
@@ -251,13 +254,6 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
             <small><span className="metric-icon">⚡</span> CURRENT POWER</small>
             <strong>
               {power ?? "—"}
-              <i>W</i>
-            </strong>
-          </div>
-          <div className="metric">
-            <small><span className="metric-icon">🎯</span> ERG TARGET</small>
-            <strong>
-              {(current?.watts ?? target) || "—"}
               <i>W</i>
             </strong>
           </div>
