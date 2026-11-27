@@ -37,6 +37,13 @@ export default function App() {
   const [power, setPower] = useState<number | null>(null);
   const [cadence, setCadence] = useState<number | null>(null);
   const [ftp, setFtp] = useState(() => Number(localStorage.getItem("ftp") || 200));
+  const [editingFtp, setEditingFtp] = useState(false);
+  const [ftpDraft, setFtpDraft] = useState(String(ftp));
+  const startEditingFtp = () => { setFtpDraft(String(ftp)); setEditingFtp(true); };
+  const saveFtp = () => {
+    const next = Number(ftpDraft);
+    if (Number.isInteger(next) && next >= 1 && next <= 2000) { setFtp(next); setEditingFtp(false); }
+  };
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutType>();
   const [workout, setWorkout] = useState<Workout>(() => JSON.parse(localStorage.getItem("workout") || "null") || initial);
   const [testKind, setTestKind] = useState<TestType>(TestType.MIN_20);
@@ -102,7 +109,24 @@ export default function App() {
       ) : null}
       <header className="topbar">
         <div><div className="eyebrow">INDOOR CYCLING · ERG CONTROL</div><h1>KICKR <span>INTERVAL COACH</span></h1></div>
-        {trainer.connected ? <button className="secondary" onClick={() => setShowConnectionDialog(true)}>Connections</button> : null}
+        {trainer.connected ? (
+          <div className="header-controls">
+            <div className="ftp-header-control">
+              {editingFtp ? (
+                <input aria-label="FTP in watts" className="ftp-header-input" type="number" min="1" max="2000"
+                  value={ftpDraft} autoFocus onChange={event => setFtpDraft(event.target.value)} onBlur={saveFtp}
+                  onKeyDown={event => {
+                    if (event.key === "Enter") saveFtp();
+                    if (event.key === "Escape") { setEditingFtp(false); setFtpDraft(String(ftp)); }
+                  }} />
+              ) : (
+                <span className="ftp-header-value" title="Functional Threshold Power">{ftp} <small>FTP</small></span>
+              )}
+              {!editingFtp ? <button className="ftp-edit-button" aria-label="Edit FTP" title="Edit FTP" onClick={startEditingFtp}>✎</button> : null}
+            </div>
+            <button className="secondary" onClick={() => setShowConnectionDialog(true)}>Connections</button>
+          </div>
+        ) : null}
       </header>
 
       {mode === "idle" ? (

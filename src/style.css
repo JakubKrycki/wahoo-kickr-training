@@ -922,3 +922,13 @@ kbd {
   .session-phase { font-size: clamp(25px, 7vw, 34px); }
   .workout-remaining strong { font-size: 21px; }
 }
+
+/* Editable FTP shortcut in the header */
+.header-controls { display: flex; align-items: center; gap: 12px; }
+.ftp-header-control { display: inline-flex; align-items: center; gap: 5px; min-height: 42px; padding: 0 10px; border: 1px solid #33463c; border-radius: 8px; color: #a4e4b1; background: #17211d; }
+.ftp-header-value { font: 600 16px 'Space Grotesk'; white-space: nowrap; }
+.ftp-header-value small { font: 10px 'DM Mono'; color: #91a59a; letter-spacing: .08em; }
+.ftp-edit-button { background: transparent; color: #a4e4b1; padding: 3px 4px; opacity: 0; transition: opacity .15s; font-size: 15px; line-height: 1; }
+.ftp-header-control:hover .ftp-edit-button, .ftp-header-control:focus-within .ftp-edit-button { opacity: 1; }
+.ftp-header-input { width: 76px; background: #101a16; color: #eef4ef; border: 1px solid #a4e4b1; border-radius: 5px; padding: 5px 7px; font: 600 16px 'Space Grotesk'; }
+@media (max-width: 760px) { .header-controls { gap: 8px; } .ftp-header-control { min-height: 38px; } }
