@@ -21,7 +21,7 @@ const initial: Workout = {
 
 export default function App() {
   const { trainer } = useFtmsTrainer();
-  const { heartRate, heartRateMonitor } = useHeartRateMonitor();
+  const { heartRate, heartRateConnected, heartRateMonitor } = useHeartRateMonitor();
   const [showConnectionDialog, setShowConnectionDialog] = useState(true);
   const [trainerConnected, setTrainerConnected] = useState(trainer.connected);
   const [ftpHistory, setFtpHistory] = useState<number[]>(() => {
@@ -100,7 +100,7 @@ export default function App() {
         <ConnectTrainerPopUp
           trainer={trainer}
           heartRate={heartRate}
-          heartRateConnected={heartRateMonitor.connected}
+          heartRateConnected={heartRateConnected}
           heartRateMonitor={heartRateMonitor}
           onClose={() => setShowConnectionDialog(false)}
         />
@@ -135,7 +135,7 @@ export default function App() {
         </>
       ) : (
         <>
-          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateMonitor.connected} setMode={setMode} steps={trainingSteps} />
+          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateConnected} setMode={setMode} steps={trainingSteps} />
         </>
       )
       }
