@@ -137,7 +137,7 @@ export default function App() {
         </>
       ) : (
         <>
-          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} setMode={setMode} steps={trainingSteps} />
+          <CurrentTrainingTile trainer={trainer} mode={mode} power={power} cadence={cadence} heartRate={heartRate} heartRateConnected={heartRateMonitor.connected} setMode={setMode} steps={trainingSteps} />
           <ShortcutsTile />
         </>
       )
