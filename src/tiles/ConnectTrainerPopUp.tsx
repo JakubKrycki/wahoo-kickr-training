@@ -4,6 +4,7 @@ import { HeartRateMonitor, Trainer } from '../connections/ftms/shared';
 export interface ConnectTrainerPopUpData {
   trainer: Trainer;
   heartRate: number | null;
+  heartRateConnected: boolean;
   heartRateMonitor: HeartRateMonitor;
   onClose: () => void;
 }
@@ -11,6 +12,7 @@ export interface ConnectTrainerPopUpData {
 export const ConnectTrainerPopUp = ({
   trainer,
   heartRate,
+  heartRateConnected,
   heartRateMonitor,
   onClose
 }: ConnectTrainerPopUpData) => {
@@ -68,11 +70,11 @@ export const ConnectTrainerPopUp = ({
           <h2>Heart-rate monitor</h2>
           <p>{heartRateMonitor.isMock ? 'Simulated heart-rate readings are enabled for development.' : 'Start HeartCast on your iPhone and Apple Watch, then connect it here to display live BPM during your ride.'}</p>
           <div className="connection-row">
-            <span className={`connection-status ${heartRate !== null ? 'is-connected' : ''}`}>
-              <i /> {heartRate !== null ? `${heartRateMonitor.isMock ? 'Mock HR monitor' : 'HeartCast'} · ${heartRate} BPM` : 'No heart-rate monitor connected'}
+            <span className={`connection-status ${heartRateConnected ? 'is-connected' : ''}`}>
+              <i /> {heartRateConnected ? `${heartRateMonitor.isMock ? 'Mock HR monitor' : 'HeartCast'}${heartRate !== null ? ` · ${heartRate} BPM` : ' · Waiting for reading'}` : 'No heart-rate monitor connected'}
             </span>
             <div className="connection-buttons">
-              {heartRate !== null ? (
+              {heartRateConnected ? (
                 <button className="secondary" onClick={() => heartRateMonitor.disconnect()}>Disconnect</button>
               ) : (
                 <button className="secondary" onClick={() => void connectHeartRate()} disabled={heartRateConnecting}>
