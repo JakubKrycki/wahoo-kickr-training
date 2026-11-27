@@ -2,6 +2,7 @@ import { SetStateAction, useEffect, useRef, useState } from 'react';
 import { Mode, Step } from '../utils/types';
 import { fmt, segmentDurationSeconds } from '../utils/utils';
 import { Trainer } from '../connections/ftms/shared';
+import { ShortcutsTile } from './ShortcutsTile';
 
 export interface CurrentTrainingTileData {
   trainer: Trainer;
@@ -255,6 +256,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
               );
             })}
           </ol>
+          <ShortcutsTile />
         </aside>
         <div className="live-session-main">
       <div className="panel current-step-card">
