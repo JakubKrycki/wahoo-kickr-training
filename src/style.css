@@ -1071,3 +1071,69 @@ kbd {
   .current-step-details { gap: 14px; }
   .current-step-metric strong { font-size: clamp(26px, 8vw, 34px); }
 }
+
+
+/* Final live workout layout sizing */
+.session-target {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+}
+.session-target.has-heart-rate {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.session-target .metric {
+  align-items: center;
+  text-align: center;
+}
+.session-target small {
+  justify-content: center;
+}
+.session-target strong {
+  font-size: clamp(62px, 6.8vw, 88px);
+}
+.workout-remaining {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+.workout-remaining strong {
+  font-size: clamp(52px, 5.8vw, 74px);
+}
+.current-step-number {
+  font-size: clamp(15px, 1.6vw, 18px);
+}
+.current-step-metric strong {
+  font-size: clamp(36px, 3.8vw, 46px);
+}
+@media (max-width: 900px) {
+  .session-target.has-heart-rate {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .session-target strong {
+    font-size: clamp(48px, 8vw, 68px);
+  }
+  .workout-remaining strong {
+    font-size: clamp(52px, 9vw, 68px);
+  }
+}
+@media (max-width: 560px) {
+  .session-target.has-heart-rate {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .session-target.has-heart-rate .metric:last-child {
+    grid-column: 1 / -1;
+  }
+  .session-target strong {
+    font-size: clamp(44px, 11vw, 62px);
+  }
+  .current-step-number {
+    font-size: 15px;
+  }
+  .current-step-metric strong {
+    font-size: clamp(32px, 8vw, 40px);
+  }
+}
