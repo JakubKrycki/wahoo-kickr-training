@@ -249,7 +249,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
           </div>
         </div>
 
-        <div className="session-target">
+        <div className={`session-target${heartRateConnected ? " has-heart-rate" : ""}`}>
           <div className="metric">
             <small><span className="metric-icon">⚡</span> CURRENT POWER</small>
             <strong>
