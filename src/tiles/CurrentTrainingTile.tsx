@@ -202,14 +202,19 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     } catch (error) {
       stopError = error instanceof Error ? error.message : "Could not stop the trainer.";
     }
+    if (stopError) {
+      setMode("paused");
+      setCommandError(stopError);
+      return;
+    }
     remainingRef.current = 0;
     stepIndexRef.current = 0;
     stepsRef.current = [];
     setStepIndex(0);
     setElapsed(0);
     setRemaining(0);
-    setMode(stopError ? "paused" : "idle");
-    setCommandError(stopError);
+    setMode("idle");
+    setCommandError(null);
     startedRef.current = false;
   }
 
