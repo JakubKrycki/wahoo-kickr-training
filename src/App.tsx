@@ -103,6 +103,7 @@ export default function App() {
         <ConnectTrainerPopUp
           trainer={trainer}
           heartRate={heartRate}
+          heartRateConnected={heartRateMonitor.connected}
           heartRateMonitor={heartRateMonitor}
           onClose={() => setShowConnectionDialog(false)}
         />
