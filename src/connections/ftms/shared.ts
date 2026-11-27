@@ -35,6 +35,8 @@ export interface HeartRateMonitor {
 
   onData(listener: HeartRateListener): () => void;
 
+  onConnectionChange(listener: (connected: boolean) => void): () => void;
+
   disconnect(): void;
 
   dispose(): void;
