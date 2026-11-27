@@ -9,7 +9,6 @@ import { ConnectTrainerPopUp } from './tiles/ConnectTrainerPopUp';
 import { CurrentTrainingTile } from './tiles/CurrentTrainingTile';
 import { useHeartRateMonitor } from './connections/useHeartRateMonitor';
 import { useFtmsTrainer } from './connections/ftms/useFtmsTrainer';
-import type { Trainer } from './connections/ftms/shared';
 
 const initial: Workout = {
   name: "5 × 4 min intervals",
@@ -66,7 +65,6 @@ export default function App() {
     return unsubscribe;
   }, [trainer]);
 
-  //this could be moved to currentTrainingTile
   useEffect(() => {
     const unsubscribe = trainer.onData((data) => {
       if (data.power !== undefined) {
@@ -83,7 +81,6 @@ export default function App() {
     };
   }, [trainer]);
 
-  //this could be moved to interval training maybe, but probably there should be separate component for FtpTestTile and IntervalWorkoutTile
   useEffect(() => {
     localStorage.setItem("workout", JSON.stringify(workout));
   }, [workout]);
@@ -95,7 +92,7 @@ export default function App() {
   const startWorkout = useCallback((workout: WorkoutType) => {
     setSelectedWorkout(workout);
     setMode("running");
-  }, [setSelectedWorkout, setMode]);
+  }, []);
 
   return (
     <main className="shell">
