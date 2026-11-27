@@ -159,27 +159,6 @@ footer,
   min-height: 15px
 }
 
-.live-head {
-  display: flex;
-  justify-content: space-between
-}
-
-.watts {
-  font: 500 76px 'Space Grotesk';
-  letter-spacing: -.06em;
-  margin: 24px 0 0
-}
-
-.watts small {
-  font-size: 19px;
-  color: #9cdaad;
-  margin-left: 7px
-}
-
-.telemetry-label {
-  margin-top: -4px
-}
-
 .section {
   margin: 34px 0 48px;
   scroll-margin-top: 20px
