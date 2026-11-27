@@ -26,6 +26,7 @@ export const ConnectTrainerPopUp = ({
     try {
       await trainer.connect();
     } catch (e) {
+      trainer.disconnect();
       setError(e instanceof Error ? e.message : 'Could not connect to the trainer.');
     } finally {
       setTrainerConnecting(false);
