@@ -8,6 +8,8 @@ export interface Trainer {
 
   onData(listener: Listener): () => void;
 
+  onConnectionChange(listener: (connected: boolean) => void): () => void;
+
   setTargetPower(watts: number): Promise<void>;
 
   startOrResume(): Promise<void>;
