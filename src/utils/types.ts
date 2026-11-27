@@ -9,7 +9,8 @@ export type Workout = { name: string; warmup: Segment; work: Segment; recovery: 
 export enum WorkoutType {
   INTERVAL = "interval",
   TEST = "test",
-  TEMPLATE = "template"
+  TEMPLATE = "template",
+  CUSTOM = "custom"
 };
 export type Step = Segment & { index: number; total: number };
 export type Mode = "idle" | "running" | "paused" | "finished";
