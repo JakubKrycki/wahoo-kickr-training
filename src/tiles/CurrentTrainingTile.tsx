@@ -40,9 +40,9 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
     const activeStep = list?.querySelector<HTMLElement>('[aria-current="step"]');
     if (!list || !activeStep) return;
 
-    const targetScrollTop = activeStep.offsetTop - (list.clientHeight - activeStep.offsetHeight) / 2;
+    const targetScrollTop = activeStep.offsetTop - list.offsetTop - (list.clientHeight - activeStep.offsetHeight) / 2;
     list.scrollTo({ top: Math.max(0, Math.min(targetScrollTop, list.scrollHeight - list.clientHeight)), behavior: "smooth" });
-  }, [stepIndex, mode]);
+  }, [stepIndex, mode, remaining]);
 
   async function sendTarget(watts: number) {
     await trainer.setTargetPower(watts);
