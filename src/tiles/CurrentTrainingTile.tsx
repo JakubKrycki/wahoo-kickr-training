@@ -351,7 +351,7 @@ export const CurrentTrainingTile = ({ trainer, mode, setMode, power, cadence, he
         </div>
 
         <div className="progress-track"><div style={{ width: `${totalSeconds ? Math.min(100, elapsed / totalSeconds * 100) : 0}%` }} /></div>
-        <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : <button className="primary" onClick={() => void resume()}>Resume</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
+        <div className="session-actions">{mode === "running" ? <button className="secondary" onClick={() => void pause()}>Pause</button> : mode === "paused" ? <button className="primary" onClick={() => void resume()}>Resume</button> : <button className="primary" disabled>Workout complete</button>}<button className="stop" disabled={mode === "idle"} onClick={() => void stop()}>Stop session</button></div>
       </div>
       <ShortcutsTile />
         </div>
